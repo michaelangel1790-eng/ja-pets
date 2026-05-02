@@ -1,0 +1,27 @@
+# dependencies & build
+node_modules
+.next
+out
+.turbo
+
+# env
+.env
+.env.local
+.env.*.local
+
+# lighthouse CLI output (npm run lighthouse:home)
+lighthouse-home.html
+
+# logs & cache
+*.log
+npm-debug.log*
+tsconfig.tsbuildinfo
+
+# test / e2e artifacts
+test-results
+playwright-report
+blob-report
+
+# OS
+.DS_Store
+Thumbs.db

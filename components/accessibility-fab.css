@@ -1,0 +1,117 @@
+/**
+ * Floating accessibility trigger - scoped under #jacuzzi-a11y-root so global
+ * `button { transform: ... }` rules in globals.css cannot affect layout/paint.
+ */
+
+#jacuzzi-a11y-root {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  pointer-events: none;
+  z-index: 2147483000;
+  isolation: isolate;
+  /* Keep widget readable when page content uses CSS filters */
+  filter: none !important;
+}
+
+#jacuzzi-a11y-root [data-jacuzzi-a11y-fab="shell"] {
+  pointer-events: none;
+  position: fixed;
+  z-index: 1;
+}
+
+#jacuzzi-a11y-root [data-jacuzzi-a11y-fab="inner"] {
+  pointer-events: auto;
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+/* Trigger is NOT a <button> - avoids every global button / role=button rule */
+#jacuzzi-a11y-root [data-jacuzzi-a11y-fab="trigger"] {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  min-height: 36px;
+  border-radius: 9999px;
+  padding: 0;
+  margin: 0;
+  border: 1px solid rgba(201, 162, 39, 0.45);
+  /* Opaque base so press/active states never flash “empty” (mobile / layered paints). */
+  background-color: #151b26;
+  background-image: radial-gradient(circle at 32% 22%, #2f3a4d 0%, #151b26 48%, #0a0d12 100%);
+  box-shadow:
+    0 3px 16px rgba(0, 0, 0, 0.42),
+    0 0 0 1px rgba(212, 175, 55, 0.22);
+  color: #f0dfa8;
+  cursor: pointer;
+  -webkit-tap-highlight-color: rgba(253, 224, 71, 0.22);
+  transform: none !important;
+  will-change: auto !important;
+  transition:
+    box-shadow 0.2s ease,
+    border-color 0.2s ease,
+    background-color 0.15s ease !important;
+  user-select: none;
+  touch-action: manipulation;
+}
+
+#jacuzzi-a11y-root [data-jacuzzi-a11y-fab="trigger"]:hover {
+  background-color: #1a2230;
+  background-image: radial-gradient(circle at 32% 22%, #354356 0%, #1a2230 48%, #0d1018 100%);
+  box-shadow:
+    0 5px 22px rgba(0, 0, 0, 0.48),
+    0 0 0 1px rgba(253, 224, 71, 0.32);
+  border-color: rgba(230, 193, 106, 0.55);
+}
+
+#jacuzzi-a11y-root [data-jacuzzi-a11y-fab="trigger"]:focus-visible {
+  outline: 2px solid #fde047;
+  outline-offset: 3px;
+}
+
+#jacuzzi-a11y-root [data-jacuzzi-a11y-fab="trigger"]:active {
+  background-color: #121820;
+  background-image: radial-gradient(circle at 32% 22%, #2a3345 0%, #121820 48%, #080a0e 100%);
+}
+
+#jacuzzi-a11y-root [data-jacuzzi-a11y-fab="trigger"][aria-expanded="true"] {
+  background-color: #1a2230;
+  background-image: radial-gradient(circle at 32% 22%, #354356 0%, #1a2230 48%, #0d1018 100%);
+  box-shadow:
+    0 4px 22px rgba(0, 0, 0, 0.55),
+    0 0 0 2px rgba(253, 224, 71, 0.45);
+}
+
+#jacuzzi-a11y-root [data-jacuzzi-a11y-fab="trigger"] svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+@media (min-width: 768px) {
+  #jacuzzi-a11y-root [data-jacuzzi-a11y-fab="trigger"] {
+    width: 56px;
+    height: 56px;
+    min-width: 56px;
+    min-height: 56px;
+  }
+
+  #jacuzzi-a11y-root [data-jacuzzi-a11y-fab="trigger"] svg {
+    width: 30px;
+    height: 30px;
+  }
+}
+
+#jacuzzi-a11y-root #jacuzzi-accessibility-menu {
+  z-index: 2;
+  filter: none !important;
+  background-color: #ffffff;
+}
