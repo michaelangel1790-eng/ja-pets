@@ -25,3 +25,5 @@ blob-report
 # OS
 .DS_Store
 Thumbs.db
+
+.vercel
