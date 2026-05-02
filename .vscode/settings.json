@@ -7,7 +7,7 @@
         "-NoLogo",
         "-NoExit",
         "-Command",
-        ". '${workspaceFolder}\\scripts\\use-git-path.ps1'"
+        ". '${workspaceFolder}/scripts/use-git-path.ps1'"
       ]
     }
   }
