@@ -1,0 +1,14 @@
+{
+  "terminal.integrated.profiles.windows": {
+    "PowerShell (Git PATH)": {
+      "source": "PowerShell",
+      "icon": "terminal-powershell",
+      "args": [
+        "-NoLogo",
+        "-NoExit",
+        "-Command",
+        ". '${workspaceFolder}\\scripts\\use-git-path.ps1'"
+      ]
+    }
+  }
+}
