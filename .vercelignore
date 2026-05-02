@@ -1,0 +1,4 @@
+# Never upload local secrets with `vercel` CLI (use Vercel Project Env Vars instead)
+.env
+.env.*
+!.env.example
