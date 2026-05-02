@@ -150,7 +150,7 @@ function bottomChromeReservePx(): number {
 
 /** ברירת מחדל: פינה תחתונה־שמאלית - מרחק מהקצה הפיזי השמאלי של המסך */
 function defaultFabInsetLeftPx(_vw: number): number {
-  return 14;
+  return 8;
 }
 
 function migrateStoredFabLeftForDesktop(l: number, _vw: number): number {
@@ -377,7 +377,7 @@ function PageStructureDialog({
 }
 
 function clampFabToViewport(l: number, b: number): FabPosition {
-  const m = 10;
+  const m = 8;
   const minB = bottomChromeReservePx();
   if (typeof window === "undefined") {
     return {
@@ -396,7 +396,7 @@ function clampFabToViewport(l: number, b: number): FabPosition {
 
 function loadFabPosition(): FabPosition {
   if (typeof window === "undefined") {
-    return { l: 14, b: bottomChromeReservePx() + 10 };
+    return { l: 8, b: bottomChromeReservePx() + 10 };
   }
   try {
     const rawV6 = localStorage.getItem(FAB_POS_KEY);
@@ -485,8 +485,8 @@ export function AccessibilityWidget() {
   const [portalHost, setPortalHost] = useState<HTMLElement | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [settings, setSettings] = useState<AccessibilitySettings>(defaultSettings);
-  const [fabPos, setFabPos] = useState<FabPosition>({ l: 14, b: 100 });
-  const fabPosRef = useRef<FabPosition>({ l: 14, b: 100 });
+  const [fabPos, setFabPos] = useState<FabPosition>({ l: 8, b: 100 });
+  const fabPosRef = useRef<FabPosition>({ l: 8, b: 100 });
   const fabTriggerRef = useRef<HTMLDivElement | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
   const [menuPlacement, setMenuPlacement] = useState({ openToPhysicalLeft: false, openAbove: false });
