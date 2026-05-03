@@ -198,7 +198,7 @@ function normalizeAccessibilitySettings(raw: Partial<AccessibilitySettings>): Ac
   const normalized: AccessibilitySettings = {
     fontScale:
       typeof raw.fontScale === "number" && Number.isFinite(raw.fontScale)
-        ? Math.min(1.3, Math.max(0.9, raw.fontScale))
+        ? Math.min(1.55, Math.max(0.88, raw.fontScale))
         : defaultSettings.fontScale,
     pageZoom,
     grayscale: raw.grayscale === true,
@@ -1025,7 +1025,7 @@ export function AccessibilityWidget() {
             <button
               type="button"
               role="menuitem"
-              onClick={() => setSettings((prev) => ({ ...prev, fontScale: Math.min(1.3, prev.fontScale + 0.05) }))}
+              onClick={() => setSettings((prev) => ({ ...prev, fontScale: Math.min(1.55, prev.fontScale + 0.12) }))}
               className={menuItemBase}
               title="מגדיל את גודל הטקסט בלבד - לא זום של כל העמוד"
             >
@@ -1041,7 +1041,7 @@ export function AccessibilityWidget() {
             <button
               type="button"
               role="menuitem"
-              onClick={() => setSettings((prev) => ({ ...prev, fontScale: Math.max(0.9, prev.fontScale - 0.05) }))}
+              onClick={() => setSettings((prev) => ({ ...prev, fontScale: Math.max(0.88, prev.fontScale - 0.12) }))}
               className={menuItemBase}
               title="מקטין את גודל הטקסט בלבד - לא זום של כל העמוד"
             >

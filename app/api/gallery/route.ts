@@ -30,14 +30,21 @@ const ADMIN_SESSION_TTL_MS = 12 * 60 * 60 * 1000;
 const MAX_FILES_PER_UPLOAD = 10;
 const MAX_BYTES_PER_IMAGE_ORIGINAL = 5 * 1024 * 1024;
 
+/** Vercel serverless ללא Blob — כתיבה לקובץ/דיסק לא נשמרת בין הפעלות */
+const FREE_HOSTING_GALLERY_WRITE_HE =
+  "העלאת תמונות דרך האתר אינה זמינה באחסון החינמי. יש להוסיף תמונות לתיקיית public/gallery ולבצע Deploy מחדש.";
+
+function isVercelWithoutPersistentGalleryWrites() {
+  return process.env.VERCEL === "1" && !blobToken();
+}
+
 function galleryJson(body: unknown, init?: ResponseInit) {
-  return galleryJson(body, {
-    ...init,
-    headers: {
-      "Cache-Control": "private, no-store, max-age=0",
-      ...(init?.headers as Record<string, string> | undefined)
-    }
-  });
+  const initHeaders = init?.headers;
+  const merged: Record<string, string> = { "Cache-Control": "private, no-store, max-age=0" };
+  if (initHeaders && typeof initHeaders === "object" && !(initHeaders instanceof Headers)) {
+    Object.assign(merged, initHeaders as Record<string, string>);
+  }
+  return NextResponse.json(body, { ...init, headers: merged });
 }
 
 function getClientKey(request: Request) {
@@ -200,8 +207,16 @@ async function addWatermarkToUpload(buffer: Buffer) {
 }
 
 export async function GET() {
-  const items = sortGalleryItems(await readGalleryItems());
-  return galleryJson({ items });
+  try {
+    const items = sortGalleryItems(await readGalleryItems());
+    return galleryJson({ items });
+  } catch (error) {
+    console.error("[api/gallery GET]", error);
+    return galleryJson(
+      { error: "לא ניתן לטעון את הגלריה כעת. נסה שוב בעוד רגע.", items: [] },
+      { status: 500 }
+    );
+  }
 }
 
 export async function POST(request: Request) {
@@ -281,6 +296,9 @@ export async function POST(request: Request) {
           return galleryJson({ error: "קוד מנהל שגוי" }, { status: 401 });
         }
         clearFailedAttempts(clientKey);
+        if (isVercelWithoutPersistentGalleryWrites()) {
+          return galleryJson({ error: FREE_HOSTING_GALLERY_WRITE_HE }, { status: 503 });
+        }
         if (!Array.isArray(body.orderedIds) || body.orderedIds.length === 0) {
           return galleryJson({ error: "חסר סדר תמונות לעדכון" }, { status: 400 });
         }
@@ -315,6 +333,9 @@ export async function POST(request: Request) {
           return galleryJson({ error: "קוד מנהל שגוי" }, { status: 401 });
         }
         clearFailedAttempts(clientKey);
+        if (isVercelWithoutPersistentGalleryWrites()) {
+          return galleryJson({ error: FREE_HOSTING_GALLERY_WRITE_HE }, { status: 503 });
+        }
         const id = (body.id || "").trim();
         if (!id) {
           return galleryJson({ error: "חסר מזהה תמונה" }, { status: 400 });
@@ -346,7 +367,7 @@ export async function POST(request: Request) {
         } catch (persistErr) {
           console.error("[api/gallery toggle-featured persist]", persistErr);
           return galleryJson(
-            { error: "שמירת התמונה המובילה נכשלה. ודא חיבור לאחסון (BLOB_READ_WRITE_TOKEN ב-Vercel)." },
+            { error: "שמירת התמונה המובילה נכשלה. נסה שוב בעוד רגע." },
             { status: 500 }
           );
         }
@@ -381,6 +402,10 @@ export async function POST(request: Request) {
     }
     clearFailedAttempts(clientKey);
 
+    if (isVercelWithoutPersistentGalleryWrites()) {
+      return galleryJson({ error: FREE_HOSTING_GALLERY_WRITE_HE }, { status: 503 });
+    }
+
     if (action === "delete") {
       const id = String(formData.get("id") || "").trim();
       if (!id) {
@@ -400,7 +425,7 @@ export async function POST(request: Request) {
       } catch (delErr) {
         console.error("[api/gallery delete]", delErr);
         return galleryJson(
-          { error: "מחיקת התמונה מהגלריה נכשלה. נסה שוב או בדוק את חיבור האחסון." },
+          { error: "מחיקת התמונה מהגלריה נכשלה. נסה שוב בעוד רגע." },
           { status: 500 }
         );
       }
@@ -425,16 +450,6 @@ export async function POST(request: Request) {
     return galleryJson(
       { error: `אפשר להעלות עד ${MAX_FILES_PER_UPLOAD} תמונות בכל העלאה` },
       { status: 400 }
-    );
-  }
-
-  if (process.env.VERCEL === "1" && !blobToken()) {
-    return galleryJson(
-      {
-        error:
-          "שמירת תמונות בגלריה דורשת Vercel Blob. הגדר במשתני הסביבה של הפרויקט את BLOB_READ_WRITE_TOKEN (לוח הבקרה של Vercel → Storage → Blob)."
-      },
-      { status: 503 }
     );
   }
 
@@ -477,13 +492,7 @@ export async function POST(request: Request) {
       imageRef = ref;
     } catch (persistErr) {
       console.error("[api/gallery upload persist]", persistErr);
-      return galleryJson(
-        {
-          error:
-            "שמירת התמונה נכשלה. אם הבעיה חוזרת, ודא שהוגדר BLOB_READ_WRITE_TOKEN ב-Vercel או שהדיסק המקומי זמין (פיתוח)."
-        },
-        { status: 500 }
-      );
+      return galleryJson({ error: "שמירת התמונה נכשלה. נסה שוב או פנה למנהל האתר." }, { status: 500 });
     }
 
     let wmWidth: number | undefined;

@@ -1,20 +1,23 @@
-[
-  {
-    "id": "g-1777410492461-2",
-    "image": "/images/gallery/1777410492461-2-img_3562.webp",
-    "category": "תספורות",
-    "dogType": "כלב",
-    "treatmentName": "תספורת וטיפוח",
-    "caption": "",
-    "featured": false
-  },
-  {
-    "id": "g-1777410492461-5",
-    "image": "/images/gallery/1777410492461-5-img_3556.webp",
-    "category": "תספורות",
-    "dogType": "כלב",
-    "treatmentName": "תספורת וטיפוח",
-    "caption": "",
-    "featured": false
-  }
-]
+{
+  "items": [
+    {
+      "id": "g-1777410492461-2",
+      "image": "/images/gallery/1777410492461-2-img_3562.webp",
+      "category": "תספורות",
+      "dogType": "כלב",
+      "treatmentName": "תספורת וטיפוח",
+      "caption": "",
+      "featured": false
+    },
+    {
+      "id": "g-1777410492461-5",
+      "image": "/images/gallery/1777410492461-5-img_3556.webp",
+      "category": "תספורות",
+      "dogType": "כלב",
+      "treatmentName": "תספורת וטיפוח",
+      "caption": "",
+      "featured": false
+    }
+  ],
+  "suppressedStaticBasenames": []
+}

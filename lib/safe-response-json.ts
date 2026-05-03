@@ -6,7 +6,7 @@ export async function safeParseResponseJson<T extends Record<string, unknown>>(
 ): Promise<T & { error?: string }> {
   const text = await response.text();
   if (!text.trim()) {
-    return { error: "לא התקבלה תשובה מהשרת" } as T & { error?: string };
+    return { error: "התקבלה תשובה ריקה מהשרת" } as T & { error?: string };
   }
   try {
     return JSON.parse(text) as T;

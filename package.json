@@ -11,6 +11,7 @@
     "deploy:vercel": "npx --yes vercel --prod",
     "lint": "tsc --noEmit --ignoreDeprecations 6.0",
     "test:a11y": "playwright test tests/a11y.spec.ts",
+    "gallery:sync": "node scripts/gallery-sync.mjs",
     "optimize:gallery-images": "node scripts/optimize-gallery-images.mjs",
     "refine:logo": "node scripts/apply-user-logo.mjs",
     "lighthouse:home": "npx --yes lighthouse http://127.0.0.1:3005 --only-categories=performance,accessibility,best-practices,seo --preset=desktop --quiet --chrome-flags=\"--headless=new\" --output=html --output-path=./lighthouse-home.html"

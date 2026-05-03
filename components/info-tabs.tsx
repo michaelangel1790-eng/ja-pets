@@ -6,8 +6,17 @@ import { createPortal } from "react-dom";
 import { haircutPricingPlans, thinningPricingPlans, truckMonthlyLocations, type GalleryItem } from "@/data/marketing-data";
 import { compressFilesForGalleryUpload } from "@/lib/gallery-compress-client";
 import { truckPromoNobgSrc } from "@/lib/site-images";
-import { faqItems, howItWorksSteps, includedItems, phoneNumbers, testimonials, whatsappMessage, whatsappNumber } from "@/data/site-data";
+import { faqItems, howItWorksSteps, phoneNumbers, testimonials, whatsappMessage, whatsappNumber } from "@/data/site-data";
 import { safeParseResponseJson } from "@/lib/safe-response-json";
+
+/** תוכן בלעדי ללשונית «מה כלול» — כרטיסים פרימיום */
+const INCLUDED_TAB_CARDS: { title: string; description: string; icon: string }[] = [
+  { title: "טיפול מלא", description: "תספורת ומקלחת מקצועית", icon: "◆" },
+  { title: "תספורת מקצועית", description: "התאמה לפי סוג הכלב, מצב הפרווה והבקשה של הלקוח", icon: "◇" },
+  { title: "ניקוי אוזניים וציפורניים", description: "מתבצע בהתאם לשיקול דעת מקצועי של הספר", icon: "◈" },
+  { title: "טיפולים משלימים", description: "טיפול בפרעושים וקרציות בתוספת תשלום ובהתאם לצורך", icon: "✦" },
+  { title: "התאמה אישית", description: "כל טיפול מותאם לגודל הכלב, אופי הכלב ומצב הפרווה", icon: "✧" }
+];
 
 const GALLERY_ADMIN_SESSION_KEY = "jacuzzi-gallery-admin-session";
 const LOCATION_ADMIN_SESSION_KEY = "jacuzzi-location-admin-session";
@@ -317,6 +326,16 @@ export function InfoTabs() {
       loadGalleryItems();
     }
   }, [activeTab, loadGalleryItems, loadTruckLocation]);
+
+  useEffect(() => {
+    if (activeTab !== "gallery") {
+      setIsLightboxOpen(false);
+      setSelectedImageIndex(null);
+      setDeleteConfirmId(null);
+      setGalleryTouchStartX(null);
+      setGalleryTouchStartY(null);
+    }
+  }, [activeTab]);
 
   useEffect(() => {
     const openTabFromNav = (event: Event) => {
@@ -914,7 +933,7 @@ export function InfoTabs() {
       });
       const text = await response.text();
       if (!text.trim()) {
-        throw new Error("שגיאת שרת בגלריה – התקבלה תשובה ריקה");
+        throw new Error("התקבלה תשובה ריקה מהשרת");
       }
       let payload: { error?: string; ok?: boolean; token?: string; sessionToken?: string; message?: string };
       try {
@@ -954,13 +973,15 @@ export function InfoTabs() {
   };
 
   const uploadImages = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const input = event.currentTarget;
+    const rawFiles = input.files;
+
     if (!canManageGallery) {
       setGalleryAdminMessage("צריך לאמת קוד מנהל לפני העלאת תמונות");
-      event.currentTarget.value = "";
+      if (input) input.value = "";
       return;
     }
 
-    const rawFiles = event.currentTarget.files;
     if (!rawFiles || rawFiles.length === 0) return;
 
     const files = Array.from(rawFiles);
@@ -975,7 +996,6 @@ export function InfoTabs() {
       });
       if (!compressed.ok) {
         setGalleryAdminMessage(compressed.error);
-        event.currentTarget.value = "";
         return;
       }
 
@@ -994,15 +1014,31 @@ export function InfoTabs() {
       const response = await postGalleryFormWithProgress(formData, sessionToken, (pct) =>
         setGalleryUploadProgress(pct)
       );
-      const payload = await safeParseResponseJson<{ error?: string; message?: string; items?: GalleryItem[] }>(response);
+      const text = await response.text();
+      if (!text.trim()) {
+        throw new Error("התקבלה תשובה ריקה מהשרת");
+      }
+      let payload: { error?: string; message?: string; items?: GalleryItem[] };
+      try {
+        payload = JSON.parse(text) as typeof payload;
+      } catch {
+        throw new Error("תשובת השרת לא בפורמט צפוי");
+      }
       if (!response.ok) {
-        throw new Error(payload.error || "העלאת התמונות נכשלה");
+        const serverErr =
+          typeof payload.error === "string" && payload.error.trim()
+            ? payload.error.trim()
+            : "העלאת התמונות נכשלה";
+        throw new Error(serverErr);
       }
       if (Array.isArray(payload.items)) {
         setGalleryImages(payload.items);
       }
-      setGalleryAdminMessage(payload.message || "התמונה נוספה בהצלחה");
-      event.currentTarget.value = "";
+      setGalleryAdminMessage(
+        typeof payload.message === "string" && payload.message.trim()
+          ? payload.message.trim()
+          : "התמונה נוספה בהצלחה"
+      );
       await loadGalleryItems(true, { silent: true });
     } catch (error) {
       setGalleryAdminMessage(error instanceof Error ? error.message : "העלאת התמונות נכשלה");
@@ -1010,6 +1046,7 @@ export function InfoTabs() {
       setIsUploadingGalleryImages(false);
       setGalleryCompressProgress(0);
       setGalleryUploadProgress(0);
+      if (input) input.value = "";
     }
   };
 
@@ -1343,8 +1380,8 @@ export function InfoTabs() {
               <p className="text-sm font-bold text-cyan-100">מחירון תספורות ודילול</p>
 
               <div className="grid gap-4 lg:grid-cols-2">
-                <article className="overflow-hidden rounded-2xl border border-cyan-400/25 bg-transparent shadow-[0_10px_28px_rgba(0,0,0,0.2)]">
-                  <div className="grid grid-cols-[auto_1fr] items-center gap-12 bg-cyan-400/10 px-4 py-3 md:gap-14">
+                <article className="overflow-hidden rounded-2xl border border-cyan-400/22 bg-transparent shadow-[0_10px_28px_rgba(0,0,0,0.2)] ring-1 ring-[#D4AF37]/12">
+                  <div className="grid grid-cols-[auto_1fr] items-center gap-12 bg-gradient-to-l from-slate-900/85 to-cyan-950/45 px-4 py-3 md:gap-14">
                     <Image
                       src="/images/van-mobile-transparent.png"
                       alt="רכב שירות עד הבית"
@@ -1352,15 +1389,15 @@ export function InfoTabs() {
                       height={80}
                       unoptimized
                       sizes="(max-width: 768px) 112px, 128px"
-                      className="h-14 w-28 shrink-0 object-contain md:h-16 md:w-32"
+                      className="h-14 w-28 shrink-0 object-contain [filter:drop-shadow(0_0_26px_rgba(56,189,248,0.45))_drop-shadow(0_4px_12px_rgba(212,175,55,0.12))] md:h-16 md:w-32"
                     />
                     <div className="ps-6 md:ps-8">
-                      <p className="text-sm font-bold text-cyan-200">מסלול פלטינום - עד הבית</p>
-                      <p className="text-xs text-cyan-100">רכב שירות נייד לבית הלקוח</p>
+                      <p className="text-sm font-bold text-cyan-100">מסלול פלטינום - עד הבית</p>
+                      <p className="text-xs text-[#E8D48B]/90">רכב שירות נייד לבית הלקוח</p>
                     </div>
                   </div>
                   <div className="space-y-1 px-3 pb-3">
-                    <div className="me-auto grid w-full max-w-[430px] grid-cols-[minmax(86px,1fr)_minmax(118px,1fr)_minmax(118px,1fr)] gap-x-4 rounded-lg bg-cyan-400/15 px-3 py-2 text-xs font-semibold">
+                    <div className="me-auto grid w-full max-w-[430px] grid-cols-[minmax(86px,1fr)_minmax(118px,1fr)_minmax(118px,1fr)] gap-x-4 rounded-lg bg-cyan-500/12 px-3 py-2 text-xs font-semibold ring-1 ring-[#D4AF37]/10">
                       <div className="jacuzzi-pricing-colhead text-right" style={PRICING_COLUMN_HEADER_STYLE}>
                         משקל
                       </div>
@@ -1385,15 +1422,15 @@ export function InfoTabs() {
                         }`}
                       >
                         <div className="text-right whitespace-nowrap text-white">{row.size}</div>
-                        <div className="text-right whitespace-nowrap font-semibold text-cyan-300">{row.haircutPlatinum}</div>
-                        <div className="text-right whitespace-nowrap font-semibold text-cyan-200">{row.thinningPlatinum}</div>
+                        <div className="text-right whitespace-nowrap font-semibold text-cyan-200">{row.haircutPlatinum}</div>
+                        <div className="text-right whitespace-nowrap font-semibold text-[#E8D48B]">{row.thinningPlatinum}</div>
                       </div>
                     ))}
                   </div>
                 </article>
 
-                <article className="overflow-hidden rounded-2xl border border-pink-400/25 bg-transparent shadow-[0_10px_28px_rgba(0,0,0,0.2)]">
-                  <div className="grid grid-cols-[auto_1fr] items-center gap-12 bg-pink-500/10 px-4 py-3 md:gap-14">
+                <article className="overflow-hidden rounded-2xl border border-sky-400/22 bg-transparent shadow-[0_10px_28px_rgba(0,0,0,0.2)] ring-1 ring-[#D4AF37]/12">
+                  <div className="grid grid-cols-[auto_1fr] items-center gap-12 bg-gradient-to-l from-slate-900/80 to-sky-950/50 px-4 py-3 md:gap-14">
                     <Image
                       src={truckPromoNobgSrc}
                       alt="משאית שירות פרימיום"
@@ -1401,15 +1438,15 @@ export function InfoTabs() {
                       height={318}
                       unoptimized
                       sizes="(max-width: 768px) 112px, 128px"
-                      className="h-14 w-28 shrink-0 object-contain md:h-16 md:w-32"
+                      className="h-14 w-28 shrink-0 object-contain [filter:drop-shadow(0_0_28px_rgba(56,189,248,0.35))_drop-shadow(0_4px_12px_rgba(212,175,55,0.15))] md:h-16 md:w-32"
                     />
                     <div className="ps-6 md:ps-8">
-                      <p className="text-sm font-bold text-pink-200">מסלול פרמיום - הגעה למשאית לפי השכונה שקרובה לך</p>
-                      <p className="text-xs text-pink-100">מגיעים למשאית במיקום הפעילות</p>
+                      <p className="text-sm font-bold text-sky-100">מסלול פרמיום - הגעה למשאית לפי השכונה שקרובה לך</p>
+                      <p className="text-xs text-[#E8D48B]/90">מגיעים למשאית במיקום הפעילות</p>
                     </div>
                   </div>
                   <div className="space-y-1 px-3 pb-3">
-                    <div className="me-auto grid w-full max-w-[430px] grid-cols-[minmax(86px,1fr)_minmax(118px,1fr)_minmax(118px,1fr)] gap-x-4 rounded-lg bg-pink-500/15 px-3 py-2 text-xs font-semibold">
+                    <div className="me-auto grid w-full max-w-[430px] grid-cols-[minmax(86px,1fr)_minmax(118px,1fr)_minmax(118px,1fr)] gap-x-4 rounded-lg bg-sky-500/12 px-3 py-2 text-xs font-semibold ring-1 ring-[#D4AF37]/10">
                       <div className="jacuzzi-pricing-colhead text-right" style={PRICING_COLUMN_HEADER_STYLE}>
                         משקל
                       </div>
@@ -1434,8 +1471,8 @@ export function InfoTabs() {
                         }`}
                       >
                         <div className="text-right whitespace-nowrap text-white">{row.size}</div>
-                        <div className="text-right whitespace-nowrap font-semibold text-pink-300">{row.haircutPremium}</div>
-                        <div className="text-right whitespace-nowrap font-semibold text-pink-200">{row.thinningPremium}</div>
+                        <div className="text-right whitespace-nowrap font-semibold text-sky-200">{row.haircutPremium}</div>
+                        <div className="text-right whitespace-nowrap font-semibold text-[#E8D48B]">{row.thinningPremium}</div>
                       </div>
                     ))}
                   </div>
@@ -1477,8 +1514,8 @@ export function InfoTabs() {
           ) : null}
 
           {activeTab === "included" ? (
-            <div role="tabpanel" id="panel-included" aria-labelledby="tab-included" className="space-y-3">
-              <div className="-mt-8 mb-3 flex w-full justify-start ps-1" style={{ direction: "ltr" }}>
+            <div role="tabpanel" id="panel-included" aria-labelledby="tab-included" className="space-y-5">
+              <div className="-mt-8 mb-1 flex w-full justify-start ps-1" style={{ direction: "ltr" }}>
                 <div className="flex flex-col items-start gap-2">
                   <a
                     href={`tel:${phoneNumbers.main.replace(/-/g, "")}`}
@@ -1496,12 +1533,22 @@ export function InfoTabs() {
                   </a>
                 </div>
               </div>
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {includedItems.map((item) => (
-                <article key={item} className="rounded-2xl bg-transparent p-4 text-center text-white">
-                  {item}
-                </article>
-              ))}
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {INCLUDED_TAB_CARDS.map((card) => (
+                  <article
+                    key={card.title}
+                    className="group flex flex-col rounded-2xl border border-white/10 bg-gradient-to-br from-slate-900/75 via-sky-950/35 to-[#0a1628]/90 p-5 text-right shadow-[0_14px_40px_rgba(0,0,0,0.35)] ring-1 ring-[#D4AF37]/15 backdrop-blur-sm transition duration-200 hover:border-[#D4AF37]/25 hover:shadow-[0_18px_48px_rgba(0,0,0,0.42)]"
+                  >
+                    <span
+                      className="mb-3 inline-flex h-9 w-9 items-center justify-center rounded-xl border border-[#D4AF37]/35 bg-[#D4AF37]/10 text-sm text-[#E8D48B]"
+                      aria-hidden
+                    >
+                      {card.icon}
+                    </span>
+                    <h3 className="text-base font-extrabold text-white md:text-lg">{card.title}</h3>
+                    <p className="mt-2 text-sm leading-relaxed text-neutral-200/95">{card.description}</p>
+                  </article>
+                ))}
               </div>
             </div>
           ) : null}
@@ -2249,7 +2296,7 @@ export function InfoTabs() {
                 </div>
               ) : null}
 
-              {isClient && isLightboxOpen && currentGalleryItem
+              {activeTab === "gallery" && isClient && isLightboxOpen && currentGalleryItem
                 ? createPortal(
                     <div
                       className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm sm:p-6 md:p-10"
@@ -2327,7 +2374,7 @@ export function InfoTabs() {
                           <button
                             type="button"
                             onClick={closeLightbox}
-                            className="flex h-10 w-10 items-center justify-center rounded-xl border border-pink-300/50 bg-pink-500/15 text-lg font-bold text-pink-100 transition hover:bg-pink-500/30"
+                            className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#D4AF37]/45 bg-[#D4AF37]/12 text-lg font-bold text-[#F5E6A8] transition hover:bg-[#D4AF37]/22"
                             aria-label="סגירה במקש X"
                           >
                             ✕
@@ -2537,7 +2584,7 @@ export function InfoTabs() {
                 ) : null}
               </div>
 
-              {isClient && canManageGallery && deleteConfirmId
+              {activeTab === "gallery" && isClient && canManageGallery && deleteConfirmId
                 ? createPortal(
                 <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm">
                   <div className="w-full max-w-sm rounded-2xl bg-[#0f172a] p-4 shadow-2xl ring-1 ring-white/15">
