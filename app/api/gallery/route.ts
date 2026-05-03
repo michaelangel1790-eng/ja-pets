@@ -357,7 +357,7 @@ export async function POST(request: Request) {
             ? body.featured
             : !Boolean(existing[itemIndex]?.featured);
 
-        /** מספר תמונות מובילות מותר — רק הפריט הנוכחי משתנה */
+        /** כמה מובילות שרוצים — רק הפריט הזה משתנה; האחרים נשארים */
         const updated = existing.map((item) =>
           item.id === id ? { ...item, featured: wantFeatured } : item
         );

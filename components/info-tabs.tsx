@@ -172,6 +172,8 @@ export function InfoTabs() {
   const [isAboutExpanded, setIsAboutExpanded] = useState(false);
   const lightboxContainerRef = useRef<HTMLDivElement | null>(null);
   const lastLightboxTriggerRef = useRef<HTMLElement | null>(null);
+  /** תמונה פתוחה בלייטבוקס לפי id — כדי שלא יחליפו תמונה אחרת אחרי שינוי מובילה/כיתוב ומיון מחדש */
+  const lightboxFocusedItemIdRef = useRef<string | null>(null);
   /** סנכרון מצב לתור כתיבות — מונע דריסת כיתובים/מובילות בבקשות מקבילות לשרת */
   const galleryImagesRef = useRef<GalleryItem[]>([]);
   const galleryWriteChainRef = useRef(Promise.resolve());
@@ -474,6 +476,7 @@ export function InfoTabs() {
 
   const closeLightbox = useCallback(() => {
     const triggerElement = lastLightboxTriggerRef.current;
+    lightboxFocusedItemIdRef.current = null;
     setSelectedImageIndex(null);
     setIsLightboxOpen(false);
     setGalleryZoom(1);
@@ -495,19 +498,37 @@ export function InfoTabs() {
   }, []);
 
   useEffect(() => {
+    if (!isLightboxOpen) return;
+    const id = lightboxFocusedItemIdRef.current;
+    if (!id) return;
+    const newIdx = featuredFirstGalleryItems.findIndex((x) => x.id === id);
+    if (newIdx < 0) {
+      closeLightbox();
+      return;
+    }
+    setSelectedImageIndex((prev) => (prev !== newIdx ? newIdx : prev));
+  }, [featuredFirstGalleryItems, isLightboxOpen, closeLightbox]);
+
+  useEffect(() => {
     if (selectedImageIndex === null || !isLightboxOpen) return;
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "ArrowLeft") {
         const prevIndex = selectedImageIndex === 0 ? featuredFirstGalleryItems.length - 1 : selectedImageIndex - 1;
+        const item = featuredFirstGalleryItems[prevIndex];
+        lightboxFocusedItemIdRef.current = item?.id ?? null;
         setLightboxDirection("prev");
         setSelectedImageIndex(prevIndex);
         setGalleryZoom(1);
+        setIsLightboxImageLoading(true);
       } else if (event.key === "ArrowRight") {
         const nextIndex = selectedImageIndex === featuredFirstGalleryItems.length - 1 ? 0 : selectedImageIndex + 1;
+        const item = featuredFirstGalleryItems[nextIndex];
+        lightboxFocusedItemIdRef.current = item?.id ?? null;
         setLightboxDirection("next");
         setSelectedImageIndex(nextIndex);
         setGalleryZoom(1);
+        setIsLightboxImageLoading(true);
       } else if (event.key === "Escape") {
         closeLightbox();
       }
@@ -515,7 +536,7 @@ export function InfoTabs() {
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [closeLightbox, featuredFirstGalleryItems.length, isLightboxOpen, selectedImageIndex]);
+  }, [closeLightbox, featuredFirstGalleryItems, isLightboxOpen, selectedImageIndex]);
 
   useEffect(() => {
     if (!featuredFirstGalleryItems.length) {
@@ -1328,6 +1349,8 @@ export function InfoTabs() {
 
   const openLightbox = (index: number, triggerElement?: HTMLElement | null) => {
     if (index < 0 || index >= featuredFirstGalleryItems.length) return;
+    const item = featuredFirstGalleryItems[index];
+    lightboxFocusedItemIdRef.current = item?.id ?? null;
     lastLightboxTriggerRef.current = triggerElement || null;
     setSelectedImageIndex(index);
     setIsLightboxOpen(true);
@@ -1340,6 +1363,8 @@ export function InfoTabs() {
   const previousImage = () => {
     if (selectedImageIndex === null || selectedImageIndex < 0) return;
     const prevIndex = selectedImageIndex === 0 ? featuredFirstGalleryItems.length - 1 : selectedImageIndex - 1;
+    const item = featuredFirstGalleryItems[prevIndex];
+    lightboxFocusedItemIdRef.current = item?.id ?? null;
     setLightboxDirection("prev");
     setSelectedImageIndex(prevIndex);
     setGalleryZoom(1);
@@ -1349,6 +1374,8 @@ export function InfoTabs() {
   const nextImage = () => {
     if (selectedImageIndex === null || selectedImageIndex < 0) return;
     const nextIndex = selectedImageIndex === featuredFirstGalleryItems.length - 1 ? 0 : selectedImageIndex + 1;
+    const item = featuredFirstGalleryItems[nextIndex];
+    lightboxFocusedItemIdRef.current = item?.id ?? null;
     setLightboxDirection("next");
     setSelectedImageIndex(nextIndex);
     setGalleryZoom(1);
@@ -2386,6 +2413,10 @@ export function InfoTabs() {
                           e.stopPropagation();
                           void saveGalleryItemCaption(item.id, e.target.value);
                         }}
+                        onBlur={(e) => {
+                          e.stopPropagation();
+                          void saveGalleryItemCaption(item.id, e.target.value);
+                        }}
                         disabled={captionSavingId === item.id}
                         className="w-full cursor-pointer rounded-md border border-white/20 bg-neutral-900 px-1.5 py-1 text-[11px] text-white outline-none focus:ring-1 focus:ring-yellow-300/50 disabled:opacity-60"
                         aria-label={`כיתוב לתמונה ${item.treatmentName}`}
@@ -2614,6 +2645,37 @@ export function InfoTabs() {
                           className="flex flex-wrap items-center justify-center gap-2 border-t border-white/10 bg-black px-3 pb-3 pt-2 sm:px-4"
                           style={{ backgroundColor: "#000" }}
                         >
+                          {canManageGallery ? (
+                            <div
+                              className="mb-1 flex w-full max-w-sm flex-col gap-1"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <span className="text-center text-[10px] font-bold text-neutral-300">
+                                כיתוב לתמונה הזו (נשמר מיד)
+                              </span>
+                              <select
+                                value={currentGalleryItem.caption || ""}
+                                onChange={(e) => {
+                                  e.stopPropagation();
+                                  void saveGalleryItemCaption(currentGalleryItem.id, e.target.value);
+                                }}
+                                onBlur={(e) => {
+                                  e.stopPropagation();
+                                  void saveGalleryItemCaption(currentGalleryItem.id, e.target.value);
+                                }}
+                                disabled={captionSavingId === currentGalleryItem.id}
+                                className="w-full rounded-md border border-white/25 bg-neutral-900 px-2 py-1.5 text-[11px] text-white outline-none focus:ring-1 focus:ring-yellow-300/50 disabled:opacity-60"
+                                aria-label="בחירת כיתוב לתמונה בגלריה"
+                              >
+                                <option value="">ללא כיתוב</option>
+                                {GALLERY_ALLOWED_CAPTIONS.map((cap) => (
+                                  <option key={cap} value={cap}>
+                                    {cap}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          ) : null}
                           <span className="w-full rounded-md bg-black px-2 py-0.5 text-center text-[11px] text-neutral-200 sm:w-auto">
                             אפשר להחליק במובייל ימינה/שמאלה
                           </span>
@@ -2708,6 +2770,9 @@ export function InfoTabs() {
 
                 {canManageGallery ? (
                   <div className="mt-4 border-t border-white/10 pt-3">
+                    <p className="mb-1 text-[11px] text-neutral-300">
+                      ★ כוכב: כל התמונות המסומנות מוצגות ראשונות בטעינה (אפשר כמה). בלי כוכב — אחרייהן.
+                    </p>
                     <p className="mb-2 text-xs font-bold text-cyan-100">העלאת תמונות לגלריה</p>
                     <label className="block cursor-pointer rounded-xl bg-cyan-400/15 px-3 py-2 text-xs font-bold text-cyan-100 hover:bg-cyan-400/25">
                       {isUploadingGalleryImages
