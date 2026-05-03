@@ -1463,8 +1463,8 @@ export function InfoTabs() {
               <p className="text-sm font-bold text-cyan-100">מחירון תספורות ודילול</p>
 
               <div className="grid gap-4 lg:grid-cols-2">
-                <article className="overflow-hidden rounded-2xl border border-cyan-400/25 bg-transparent shadow-[0_10px_28px_rgba(0,0,0,0.2)]">
-                  <div className="grid grid-cols-[auto_1fr] items-center gap-12 bg-cyan-400/10 px-4 py-3 md:gap-14">
+                <article className="flex flex-col overflow-hidden rounded-2xl border border-cyan-400/25 bg-cyan-400/10 shadow-[0_10px_28px_rgba(0,0,0,0.2)]">
+                  <div className="grid grid-cols-[auto_1fr] items-center gap-12 px-4 py-3 md:gap-14">
                     <Image
                       src="/images/van-mobile-transparent.png"
                       alt="רכב שירות עד הבית"
@@ -1479,24 +1479,22 @@ export function InfoTabs() {
                       <p className="text-xs text-cyan-100">רכב שירות נייד לבית הלקוח</p>
                     </div>
                   </div>
-                  <div className="space-y-1 px-3 pb-3">
-                    <div className="-mx-3 mb-1 px-3">
-                      <div className="grid w-full grid-cols-[minmax(86px,1fr)_minmax(118px,1fr)_minmax(118px,1fr)] gap-x-4 rounded-lg bg-cyan-400/10 px-3 py-2.5 text-xs font-semibold">
-                        <div className="text-right" style={PRICING_COLUMN_HEADER_STYLE}>
-                          משקל
-                        </div>
-                        <div className="text-right whitespace-nowrap" style={PRICING_COLUMN_HEADER_STYLE}>
-                          מחיר לתספורת
-                        </div>
-                        <div className="text-right whitespace-nowrap" style={PRICING_COLUMN_HEADER_STYLE}>
-                          מחיר לדילול
-                        </div>
+                  <div className="flex flex-col border-t border-cyan-300/15 pb-3">
+                    <div className="grid w-full grid-cols-[minmax(86px,1fr)_minmax(118px,1fr)_minmax(118px,1fr)] gap-x-4 border-b border-cyan-300/10 px-4 py-2.5 text-xs font-semibold">
+                      <div className="text-right" style={PRICING_COLUMN_HEADER_STYLE}>
+                        משקל
+                      </div>
+                      <div className="text-right whitespace-nowrap" style={PRICING_COLUMN_HEADER_STYLE}>
+                        מחיר לתספורת
+                      </div>
+                      <div className="text-right whitespace-nowrap" style={PRICING_COLUMN_HEADER_STYLE}>
+                        מחיר לדילול
                       </div>
                     </div>
                     {combinedPricingRows.map((row, index) => (
                       <div
                         key={`platinum-${row.size}`}
-                        className={`me-auto grid w-full max-w-[430px] grid-cols-[minmax(86px,1fr)_minmax(118px,1fr)_minmax(118px,1fr)] gap-x-4 rounded-lg px-3 py-2 text-sm ${
+                        className={`grid w-full grid-cols-[minmax(86px,1fr)_minmax(118px,1fr)_minmax(118px,1fr)] gap-x-4 border-b border-cyan-300/10 px-4 py-2 text-sm last:border-b-0 ${
                           index % 2 === 1 ? "bg-white/5" : ""
                         }`}
                       >
@@ -1508,8 +1506,8 @@ export function InfoTabs() {
                   </div>
                 </article>
 
-                <article className="overflow-hidden rounded-2xl border border-pink-400/25 bg-transparent shadow-[0_10px_28px_rgba(0,0,0,0.2)]">
-                  <div className="grid grid-cols-[auto_1fr] items-center gap-12 bg-pink-500/10 px-4 py-3 md:gap-14">
+                <article className="flex flex-col overflow-hidden rounded-2xl border border-pink-400/25 bg-pink-500/10 shadow-[0_10px_28px_rgba(0,0,0,0.2)]">
+                  <div className="grid grid-cols-[auto_1fr] items-center gap-12 px-4 py-3 md:gap-14">
                     <Image
                       src={truckPromoNobgSrc}
                       alt="משאית שירות פרימיום"
@@ -1524,24 +1522,22 @@ export function InfoTabs() {
                       <p className="text-xs text-pink-100">מגיעים למשאית במיקום הפעילות</p>
                     </div>
                   </div>
-                  <div className="space-y-1 px-3 pb-3">
-                    <div className="-mx-3 mb-1 px-3">
-                      <div className="grid w-full grid-cols-[minmax(86px,1fr)_minmax(118px,1fr)_minmax(118px,1fr)] gap-x-4 rounded-lg bg-pink-500/10 px-3 py-2.5 text-xs font-semibold">
-                        <div className="text-right" style={PRICING_COLUMN_HEADER_STYLE}>
-                          משקל
-                        </div>
-                        <div className="text-right whitespace-nowrap" style={PRICING_COLUMN_HEADER_STYLE}>
-                          מחיר לתספורת
-                        </div>
-                        <div className="text-right whitespace-nowrap" style={PRICING_COLUMN_HEADER_STYLE}>
-                          מחיר לדילול
-                        </div>
+                  <div className="flex flex-col border-t border-pink-300/15 pb-3">
+                    <div className="grid w-full grid-cols-[minmax(86px,1fr)_minmax(118px,1fr)_minmax(118px,1fr)] gap-x-4 border-b border-pink-300/10 px-4 py-2.5 text-xs font-semibold">
+                      <div className="text-right" style={PRICING_COLUMN_HEADER_STYLE}>
+                        משקל
+                      </div>
+                      <div className="text-right whitespace-nowrap" style={PRICING_COLUMN_HEADER_STYLE}>
+                        מחיר לתספורת
+                      </div>
+                      <div className="text-right whitespace-nowrap" style={PRICING_COLUMN_HEADER_STYLE}>
+                        מחיר לדילול
                       </div>
                     </div>
                     {combinedPricingRows.map((row, index) => (
                       <div
                         key={`premium-${row.size}`}
-                        className={`me-auto grid w-full max-w-[430px] grid-cols-[minmax(86px,1fr)_minmax(118px,1fr)_minmax(118px,1fr)] gap-x-4 rounded-lg px-3 py-2 text-sm ${
+                        className={`grid w-full grid-cols-[minmax(86px,1fr)_minmax(118px,1fr)_minmax(118px,1fr)] gap-x-4 border-b border-pink-300/10 px-4 py-2 text-sm last:border-b-0 ${
                           index % 2 === 1 ? "bg-white/5" : ""
                         }`}
                       >
