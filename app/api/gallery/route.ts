@@ -17,6 +17,7 @@ import {
   writeGalleryItems
 } from "@/lib/gallery-storage";
 import { resolveAdminSessionSecret } from "@/lib/admin-session-secret";
+import { sanitizeGalleryCaption } from "@/lib/gallery-captions";
 
 export const runtime = "nodejs";
 
@@ -134,7 +135,7 @@ function sortGalleryItems(items: GalleryItem[]): GalleryItem[] {
 
 async function logGalleryAdminAction(
   request: Request,
-  action: "verify-code" | "reorder" | "toggle-featured" | "delete" | "upload",
+  action: "verify-code" | "reorder" | "toggle-featured" | "delete" | "upload" | "update-caption",
   payload: Record<string, unknown> = {}
 ) {
   const entry = {
@@ -249,19 +250,21 @@ export async function POST(request: Request) {
       }
 
       let body: {
-        action?: "verify-code" | "reorder" | "toggle-featured";
+        action?: "verify-code" | "reorder" | "toggle-featured" | "update-caption";
         code?: string;
         orderedIds?: string[];
         id?: string;
         featured?: boolean;
+        caption?: string;
       };
       try {
         body = JSON.parse(rawText) as {
-          action?: "verify-code" | "reorder" | "toggle-featured";
+          action?: "verify-code" | "reorder" | "toggle-featured" | "update-caption";
           code?: string;
           orderedIds?: string[];
           id?: string;
           featured?: boolean;
+          caption?: string;
         };
       } catch {
         return galleryJson({ error: "בקשה לא תקינה" }, { status: 400 });
@@ -381,6 +384,40 @@ export async function POST(request: Request) {
         });
       }
 
+      if (body.action === "update-caption") {
+        if (!isAuthorizedRequest(request, body.code, adminCode)) {
+          registerFailedAttempt(clientKey);
+          return galleryJson({ error: "קוד מנהל שגוי" }, { status: 401 });
+        }
+        clearFailedAttempts(clientKey);
+        if (isVercelWithoutPersistentGalleryWrites()) {
+          return galleryJson({ error: FREE_HOSTING_GALLERY_WRITE_HE }, { status: 503 });
+        }
+        const id = (body.id || "").trim();
+        if (!id) {
+          return galleryJson({ error: "חסר מזהה תמונה" }, { status: 400 });
+        }
+        const safeCap = sanitizeGalleryCaption(typeof body.caption === "string" ? body.caption : "");
+        const existing = await readGalleryItems();
+        const itemIndex = existing.findIndex((item) => item.id === id);
+        if (itemIndex < 0) {
+          return galleryJson({ error: "התמונה לא נמצאה בגלריה" }, { status: 404 });
+        }
+        const updated = existing.map((item) => (item.id === id ? { ...item, caption: safeCap } : item));
+        try {
+          await writeGalleryItems(updated);
+        } catch (persistErr) {
+          console.error("[api/gallery update-caption persist]", persistErr);
+          return galleryJson({ error: "שמירת הכיתוב נכשלה. נסה שוב בעוד רגע." }, { status: 500 });
+        }
+        await logGalleryAdminAction(request, "update-caption", { id, caption: safeCap || null });
+        return galleryJson({
+          ok: true,
+          message: "כיתוב התמונה עודכן",
+          items: sortGalleryItems(updated)
+        });
+      }
+
       return galleryJson({ error: "פעולה לא נתמכת" }, { status: 400 });
     }
 
@@ -440,9 +477,19 @@ export async function POST(request: Request) {
     }
 
   const files = formData.getAll("images").filter((file): file is File => file instanceof File);
-  const caption = String(formData.get("caption") || "").trim();
-  const allowedCaptions = new Set(["לפני / אחרי", "תספורת", "רחצה וטיפוח", "עבודה מיוחדת"]);
-  const safeCaption = allowedCaptions.has(caption) ? caption : "";
+  const captionSingle = sanitizeGalleryCaption(String(formData.get("caption") || ""));
+  let perUploadCaptions: string[] = [];
+  const captionsRaw = formData.get("captions");
+  if (typeof captionsRaw === "string" && captionsRaw.trim()) {
+    try {
+      const parsed = JSON.parse(captionsRaw) as unknown;
+      if (Array.isArray(parsed)) {
+        perUploadCaptions = parsed.map((x) => (typeof x === "string" ? x : ""));
+      }
+    } catch {
+      /* התעלם — נשתמש רק ב־caption כללי */
+    }
+  }
   if (files.length === 0) {
     return galleryJson({ error: "לא נבחרו תמונות להעלאה" }, { status: 400 });
   }
@@ -463,7 +510,9 @@ export async function POST(request: Request) {
     const file = files[index];
     const originalName = file.name || `image-${index + 1}.jpg`;
     const ext = (path.extname(originalName) || ".jpg").toLowerCase();
-    if (!allowedMimeTypes.has(file.type) || !allowedExts.has(ext)) {
+    const extOk = allowedExts.has(ext);
+    const mimeOk = !file.type || allowedMimeTypes.has(file.type);
+    if (!extOk || !mimeOk) {
       return galleryJson({ error: "ניתן להעלות רק קבצי JPG, JPEG, PNG או WEBP" }, { status: 400 });
     }
     if (file.size > MAX_BYTES_PER_IMAGE_ORIGINAL) {
@@ -505,13 +554,17 @@ export async function POST(request: Request) {
       // ignore metadata failure
     }
 
+    const rawCapForIndex =
+      index < perUploadCaptions.length ? (perUploadCaptions[index] ?? captionSingle) : captionSingle;
+    const safeCap = sanitizeGalleryCaption(rawCapForIndex);
+
     created.push({
       id: `g-${now}-${index + 1}`,
       image: imageRef,
       category: "תספורות",
       dogType: "כלב",
       treatmentName: "תספורת וטיפוח",
-      caption: safeCaption,
+      caption: safeCap,
       featured: false,
       source: "blob",
       createdAt: new Date().toISOString(),
@@ -522,11 +575,11 @@ export async function POST(request: Request) {
 
   const updated = [...created, ...existing];
   await writeGalleryItems(updated);
-  await logGalleryAdminAction(request, "upload", { uploadedCount: created.length, caption: safeCaption || null });
+  await logGalleryAdminAction(request, "upload", { uploadedCount: created.length, caption: captionSingle || null });
 
   return galleryJson({
     ok: true,
-    message: "התמונה נוספה בהצלחה",
+    message: created.length > 1 ? `${created.length} תמונות נוספו בהצלחה` : "התמונה נוספה בהצלחה",
     items: sortGalleryItems(updated)
   });
   } catch (error) {

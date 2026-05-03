@@ -8,6 +8,10 @@ import { compressFilesForGalleryUpload } from "@/lib/gallery-compress-client";
 import { truckPromoNobgSrc } from "@/lib/site-images";
 import { faqItems, howItWorksSteps, phoneNumbers, testimonials, whatsappMessage, whatsappNumber } from "@/data/site-data";
 import { safeParseResponseJson } from "@/lib/safe-response-json";
+import { GALLERY_ALLOWED_CAPTIONS } from "@/lib/gallery-captions";
+
+/** פחות תמונות בבקשה אחת — מפחית כשל JSON / timeout / גוף גדול מדי */
+const GALLERY_UPLOAD_CHUNK_SIZE = 3;
 
 /** תוכן בלעדי ללשונית «מה כלול» — כרטיסים פרימיום */
 const INCLUDED_TAB_CARDS: { title: string; description: string; icon: string }[] = [
@@ -147,6 +151,7 @@ export function InfoTabs() {
   const [galleryCompressProgress, setGalleryCompressProgress] = useState(0);
   const [galleryUploadProgress, setGalleryUploadProgress] = useState(0);
   const [featuredSavingId, setFeaturedSavingId] = useState<string | null>(null);
+  const [captionSavingId, setCaptionSavingId] = useState<string | null>(null);
   const [galleryThumbLoaded, setGalleryThumbLoaded] = useState<Record<string, boolean>>({});
   const [reorderingGalleryItemId, setReorderingGalleryItemId] = useState<string | null>(null);
   const [deletingGalleryItemId, setDeletingGalleryItemId] = useState<string | null>(null);
@@ -1003,43 +1008,74 @@ export function InfoTabs() {
       if (!sessionToken) {
         throw new Error("יש לאמת מחדש קוד מנהל");
       }
-      const formData = new FormData();
-      formData.append("action", "upload");
-      if (uploadCaption) {
-        formData.append("caption", uploadCaption);
-      }
-      compressed.files.forEach((file) => formData.append("images", file));
 
-      setGalleryUploadProgress(0);
-      const response = await postGalleryFormWithProgress(formData, sessionToken, (pct) =>
-        setGalleryUploadProgress(pct)
-      );
-      const text = await response.text();
-      if (!text.trim()) {
-        throw new Error("התקבלה תשובה ריקה מהשרת");
+      const toUpload = compressed.files;
+      const chunks: (typeof toUpload)[] = [];
+      for (let i = 0; i < toUpload.length; i += GALLERY_UPLOAD_CHUNK_SIZE) {
+        chunks.push(toUpload.slice(i, i + GALLERY_UPLOAD_CHUNK_SIZE));
       }
-      let payload: { error?: string; message?: string; items?: GalleryItem[] };
-      try {
-        payload = JSON.parse(text) as typeof payload;
-      } catch {
-        throw new Error("תשובת השרת לא בפורמט צפוי");
+      const totalChunks = chunks.length;
+      let lastPayload: { error?: string; message?: string; items?: GalleryItem[] } = {};
+
+      for (let chunkIndex = 0; chunkIndex < chunks.length; chunkIndex += 1) {
+        const chunk = chunks[chunkIndex];
+        const formData = new FormData();
+        formData.append("action", "upload");
+        if (uploadCaption) {
+          formData.append("caption", uploadCaption);
+        }
+        const captionsArr = chunk.map(() => uploadCaption);
+        formData.append("captions", JSON.stringify(captionsArr));
+        chunk.forEach((file) => formData.append("images", file));
+
+        setGalleryAdminMessage(
+          totalChunks > 1
+            ? `מעלה קבוצה ${chunkIndex + 1} מתוך ${totalChunks} (${chunk.length} תמונות)...`
+            : "מעלה תמונות..."
+        );
+
+        const response = await postGalleryFormWithProgress(formData, sessionToken, (pct) => {
+          const overall = ((chunkIndex + pct / 100) / totalChunks) * 100;
+          setGalleryUploadProgress(Math.min(100, Math.round(overall)));
+        });
+
+        const raw = await response.text();
+        const text = raw.replace(/^\uFEFF/, "").trim();
+        if (!text) {
+          throw new Error("התקבלה תשובה ריקה מהשרת");
+        }
+        if (text.startsWith("<")) {
+          throw new Error(
+            "השרת החזיר תשובה שאינה תקינה (לעיתים בגלל גודל או זמן). נסה להעלות פחות תמונות בכל פעם."
+          );
+        }
+        let payload: { error?: string; message?: string; items?: GalleryItem[] };
+        try {
+          payload = JSON.parse(text) as typeof payload;
+        } catch {
+          throw new Error("תשובת השרת לא בפורמט צפוי");
+        }
+        if (!response.ok) {
+          const serverErr =
+            typeof payload.error === "string" && payload.error.trim()
+              ? payload.error.trim()
+              : "העלאת התמונות נכשלה";
+          throw new Error(serverErr);
+        }
+        if (Array.isArray(payload.items)) {
+          setGalleryImages(payload.items);
+        } else {
+          await loadGalleryItems(true, { silent: true });
+        }
+        lastPayload = payload;
       }
-      if (!response.ok) {
-        const serverErr =
-          typeof payload.error === "string" && payload.error.trim()
-            ? payload.error.trim()
-            : "העלאת התמונות נכשלה";
-        throw new Error(serverErr);
-      }
-      if (Array.isArray(payload.items)) {
-        setGalleryImages(payload.items);
-      } else {
-        await loadGalleryItems(true, { silent: true });
-      }
+
       setGalleryAdminMessage(
-        typeof payload.message === "string" && payload.message.trim()
-          ? payload.message.trim()
-          : "התמונה נוספה בהצלחה"
+        typeof lastPayload.message === "string" && lastPayload.message.trim()
+          ? lastPayload.message.trim()
+          : toUpload.length > 1
+            ? `${toUpload.length} תמונות הועלו בהצלחה`
+            : "התמונה נוספה בהצלחה"
       );
     } catch (error) {
       setGalleryAdminMessage(error instanceof Error ? error.message : "העלאת התמונות נכשלה");
@@ -1194,6 +1230,51 @@ export function InfoTabs() {
       setGalleryAdminMessage(error instanceof Error ? error.message : "עדכון תמונה מובילה נכשל");
     } finally {
       setFeaturedSavingId(null);
+    }
+  };
+
+  const saveGalleryItemCaption = async (id: string, caption: string) => {
+    if (!canManageGallery) {
+      setGalleryAdminMessage("צריך לאמת קוד מנהל");
+      return;
+    }
+    const sessionToken = lastVerifiedGalleryCodeRef.current;
+    if (!sessionToken) {
+      setGalleryAdminMessage("יש לאמת מחדש קוד מנהל");
+      return;
+    }
+    setCaptionSavingId(id);
+    setGalleryAdminMessage("");
+    try {
+      const response = await fetch("/api/gallery", {
+        method: "POST",
+        cache: "no-store",
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-session": sessionToken
+        },
+        body: JSON.stringify({
+          action: "update-caption",
+          id,
+          caption
+        })
+      });
+      const payload = await safeParseResponseJson<{ error?: string; message?: string; items?: GalleryItem[] }>(response);
+      if (!response.ok) {
+        throw new Error(payload.error || "עדכון הכיתוב נכשל");
+      }
+      if (Array.isArray(payload.items)) {
+        setGalleryImages(payload.items);
+      }
+      setGalleryAdminMessage(
+        typeof payload.message === "string" && payload.message.trim()
+          ? payload.message.trim()
+          : "כיתוב התמונה עודכן"
+      );
+    } catch (error) {
+      setGalleryAdminMessage(error instanceof Error ? error.message : "עדכון הכיתוב נכשל");
+    } finally {
+      setCaptionSavingId(null);
     }
   };
 
@@ -2233,6 +2314,31 @@ export function InfoTabs() {
                       </button>
                     </div>
                   ) : null}
+                  {canManageGallery ? (
+                    <div
+                      className="pointer-events-auto mt-1.5 space-y-0.5 rounded-lg bg-black/45 px-2 py-1.5 ring-1 ring-white/15"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <span className="block text-[10px] font-bold text-neutral-300">כיתוב (אופציונלי)</span>
+                      <select
+                        value={item.caption || ""}
+                        onChange={(e) => {
+                          e.stopPropagation();
+                          void saveGalleryItemCaption(item.id, e.target.value);
+                        }}
+                        disabled={captionSavingId !== null}
+                        className="w-full cursor-pointer rounded-md border border-white/20 bg-neutral-900 px-1.5 py-1 text-[11px] text-white outline-none focus:ring-1 focus:ring-yellow-300/50 disabled:opacity-60"
+                        aria-label={`כיתוב לתמונה ${item.treatmentName}`}
+                      >
+                        <option value="">ללא כיתוב</option>
+                        {GALLERY_ALLOWED_CAPTIONS.map((cap) => (
+                          <option key={cap} value={cap}>
+                            {cap}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  ) : null}
                   </div>
                 );
                 })}
@@ -2557,17 +2663,18 @@ export function InfoTabs() {
                       />
                     </label>
                     <label className="mt-2 block text-xs text-neutral-200">
-                      כיתוב אופציונלי לתמונות
+                      כיתוב ברירת מחדל (לכל התמונות בבחירה הנוכחית; אחרי ההעלאה אפשר לכוון כל תמונה בנפרד)
                       <select
                         value={uploadCaption}
                         onChange={(event) => setUploadCaption(event.target.value)}
                         className="mt-1 w-full rounded-lg bg-white px-2 py-2 text-xs text-neutral-900 outline-none ring-1 ring-white/25"
                       >
                         <option value="">ללא כיתוב</option>
-                        <option value="לפני / אחרי">לפני / אחרי</option>
-                        <option value="תספורת">תספורת</option>
-                        <option value="רחצה וטיפוח">רחצה וטיפוח</option>
-                        <option value="עבודה מיוחדת">עבודה מיוחדת</option>
+                        {GALLERY_ALLOWED_CAPTIONS.map((cap) => (
+                          <option key={cap} value={cap}>
+                            {cap}
+                          </option>
+                        ))}
                       </select>
                     </label>
                   </div>
