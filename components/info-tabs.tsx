@@ -1193,14 +1193,9 @@ export function InfoTabs() {
 
     const previousItems = galleryImages;
     setFeaturedSavingId(id);
-    setGalleryImages((prev) => {
-      if (featured) {
-        return prev.map((item) =>
-          item.id === id ? { ...item, featured: true } : { ...item, featured: false }
-        );
-      }
-      return prev.map((item) => (item.id === id ? { ...item, featured: false } : item));
-    });
+    setGalleryImages((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, featured } : item))
+    );
     setGalleryAdminMessage("");
     try {
       const response = await fetch("/api/gallery", {
@@ -1224,7 +1219,7 @@ export function InfoTabs() {
         throw new Error("תשובת השרת לא כוללת את רשימת הגלריה המעודכנת");
       }
       setGalleryImages(payload.items);
-      setGalleryAdminMessage("תמונה מובילה עודכנה בהצלחה");
+      setGalleryAdminMessage(payload.message?.trim() || "סימון מובילה עודכן");
     } catch (error) {
       setGalleryImages(previousItems);
       setGalleryAdminMessage(error instanceof Error ? error.message : "עדכון תמונה מובילה נכשל");

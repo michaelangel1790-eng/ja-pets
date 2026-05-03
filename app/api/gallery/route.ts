@@ -355,15 +355,10 @@ export async function POST(request: Request) {
             ? body.featured
             : !Boolean(existing[itemIndex]?.featured);
 
-        /** מובילה אחת בלבד: הפעלה מבטלת כוכב מכל השאר; כיבוי רק על הפריט הנוכחי */
-        let updated: GalleryItem[];
-        if (wantFeatured) {
-          updated = existing.map((item) =>
-            item.id === id ? { ...item, featured: true } : { ...item, featured: false }
-          );
-        } else {
-          updated = existing.map((item) => (item.id === id ? { ...item, featured: false } : item));
-        }
+        /** מספר תמונות מובילות מותר — רק הפריט הנוכחי משתנה */
+        const updated = existing.map((item) =>
+          item.id === id ? { ...item, featured: wantFeatured } : item
+        );
 
         try {
           await writeGalleryItems(updated);
@@ -379,7 +374,7 @@ export async function POST(request: Request) {
 
         return galleryJson({
           ok: true,
-          message: "תמונה מובילה עודכנה בהצלחה",
+          message: "סימון מובילה עודכן",
           items: sortGalleryItems(updated)
         });
       }
