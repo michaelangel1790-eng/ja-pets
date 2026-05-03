@@ -245,6 +245,16 @@ export async function POST(request: Request) {
     const adminCode = getAdminCode();
 
     if (contentType.includes("application/json")) {
+      let rawText: string;
+      try {
+        rawText = await request.text();
+      } catch {
+        return NextResponse.json({ error: "בקשה לא תקינה" }, { status: 400 });
+      }
+      if (!rawText.trim()) {
+        return NextResponse.json({ error: "בקשה לא תקינה" }, { status: 400 });
+      }
+
       let body: {
         action?: "verify-code" | "reorder" | "toggle-featured";
         code?: string;
@@ -253,7 +263,7 @@ export async function POST(request: Request) {
         featured?: boolean;
       };
       try {
-        body = (await request.json()) as {
+        body = JSON.parse(rawText) as {
           action?: "verify-code" | "reorder" | "toggle-featured";
           code?: string;
           orderedIds?: string[];
@@ -270,12 +280,21 @@ export async function POST(request: Request) {
           return NextResponse.json({ error: "קוד מנהל שגוי" }, { status: 401 });
         }
         clearFailedAttempts(clientKey);
-        await logGalleryAdminAction(request, "verify-code", { ok: true });
+        try {
+          await logGalleryAdminAction(request, "verify-code", { ok: true });
+        } catch (auditErr) {
+          console.error("[api/gallery verify-code audit]", auditErr);
+        }
         const sessionToken = createAdminSessionToken("gallery-admin");
         if (!sessionToken) {
           return NextResponse.json({ error: "קוד מנהל לא הוגדר בשרת" }, { status: 500 });
         }
-        return NextResponse.json({ ok: true, sessionToken });
+        return NextResponse.json({
+          ok: true,
+          message: "הקוד אומת בהצלחה",
+          token: sessionToken,
+          sessionToken
+        });
       }
 
       if (body.action === "reorder") {

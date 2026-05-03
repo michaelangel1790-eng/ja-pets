@@ -864,13 +864,28 @@ export function InfoTabs() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ code: galleryAdminCode.trim(), action: "verify-code" })
       });
-      const payload = await safeParseResponseJson<{ error?: string; sessionToken?: string }>(response);
-      if (!response.ok || !payload.sessionToken) {
+      const text = await response.text();
+      if (!text.trim()) {
+        throw new Error("שגיאת שרת בגלריה – התקבלה תשובה ריקה");
+      }
+      let payload: { error?: string; ok?: boolean; token?: string; sessionToken?: string; message?: string };
+      try {
+        payload = JSON.parse(text) as typeof payload;
+      } catch {
+        throw new Error("תשובת השרת לא בפורמט צפוי");
+      }
+      let gallerySessionToken = "";
+      if (typeof payload.token === "string" && payload.token.trim()) {
+        gallerySessionToken = payload.token.trim();
+      } else if (typeof payload.sessionToken === "string" && payload.sessionToken.trim()) {
+        gallerySessionToken = payload.sessionToken.trim();
+      }
+      if (!response.ok || !gallerySessionToken) {
         throw new Error(payload.error || "אימות מנהל נכשל");
       }
-      lastVerifiedGalleryCodeRef.current = payload.sessionToken;
+      lastVerifiedGalleryCodeRef.current = gallerySessionToken;
       try {
-        sessionStorage.setItem(GALLERY_ADMIN_SESSION_KEY, JSON.stringify({ token: payload.sessionToken }));
+        sessionStorage.setItem(GALLERY_ADMIN_SESSION_KEY, JSON.stringify({ token: gallerySessionToken }));
       } catch {
         // ignore storage quota / private mode
       }
