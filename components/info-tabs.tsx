@@ -1429,10 +1429,12 @@ export function InfoTabs() {
                     />
                   </div>
                   <div className="min-w-0 flex-1 space-y-2 text-right">
-                    <h3 className="text-xl font-extrabold text-cyan-300 md:text-2xl">מסלול פלטינום – עד הבית</h3>
-                    <p className="text-neutral-100">
-                      נוחות מלאה: אנחנו מגיעים אליכם עם כל הציוד הנדרש לטיפול מקצועי ומלא.
-                    </p>
+                    <div className="jacuzzi-track-headline-frame space-y-2">
+                      <h3 className="text-xl font-extrabold text-cyan-300 md:text-2xl">מסלול פלטינום – עד הבית</h3>
+                      <p className="text-neutral-100">
+                        נוחות מלאה: אנחנו מגיעים אליכם עם כל הציוד הנדרש לטיפול מקצועי ומלא.
+                      </p>
+                    </div>
                   </div>
                 </div>
               </article>
@@ -1450,12 +1452,14 @@ export function InfoTabs() {
                     />
                   </div>
                   <div className="min-w-0 flex-1 space-y-2 text-right">
-                    <h3 className="text-xl font-extrabold text-pink-300 md:text-2xl">
-                      מסלול פרמיום - הגעה למשאית לפי השכונה שקרובה לך
-                    </h3>
-                    <p className="text-neutral-100">
-                      מחיר משתלם יותר: אתם מגיעים למשאית במיקום הפעילות הקרוב אליכם.
-                    </p>
+                    <div className="jacuzzi-track-headline-frame space-y-2">
+                      <h3 className="text-xl font-extrabold text-pink-300 md:text-2xl">
+                        מסלול פרמיום - הגעה למשאית לפי השכונה שקרובה לך
+                      </h3>
+                      <p className="text-neutral-100">
+                        מחיר משתלם יותר: אתם מגיעים למשאית במיקום הפעילות הקרוב אליכם.
+                      </p>
+                    </div>
                   </div>
                 </div>
               </article>
@@ -1479,8 +1483,10 @@ export function InfoTabs() {
                       className="h-14 w-28 shrink-0 object-contain md:h-16 md:w-32"
                     />
                     <div className="ps-6 md:ps-8">
-                      <p className="text-sm font-bold text-cyan-200">מסלול פלטינום - עד הבית</p>
-                      <p className="text-xs text-cyan-100">רכב שירות נייד לבית הלקוח</p>
+                      <div className="jacuzzi-track-headline-frame space-y-1">
+                        <p className="text-sm font-bold text-cyan-200">מסלול פלטינום - עד הבית</p>
+                        <p className="text-xs text-cyan-100">רכב שירות נייד לבית הלקוח</p>
+                      </div>
                     </div>
                   </div>
                   <div className="flex flex-col border-t border-cyan-300/15 pb-3">
@@ -1522,8 +1528,10 @@ export function InfoTabs() {
                       className="h-14 w-28 shrink-0 object-contain md:h-16 md:w-32"
                     />
                     <div className="ps-6 md:ps-8">
-                      <p className="text-sm font-bold text-pink-200">מסלול פרמיום - הגעה למשאית לפי השכונה שקרובה לך</p>
-                      <p className="text-xs text-pink-100">מגיעים למשאית במיקום הפעילות</p>
+                      <div className="jacuzzi-track-headline-frame space-y-1">
+                        <p className="text-sm font-bold text-pink-200">מסלול פרמיום - הגעה למשאית לפי השכונה שקרובה לך</p>
+                        <p className="text-xs text-pink-100">מגיעים למשאית במיקום הפעילות</p>
+                      </div>
                     </div>
                   </div>
                   <div className="flex flex-col border-t border-pink-300/15 pb-3">
@@ -1717,7 +1725,7 @@ export function InfoTabs() {
                     <p>לנוחות הלקוחות, רשת JACUZZI מציעה שני מסלולי שירות:</p>
 
                     <div className="space-y-3 rounded-2xl bg-white/5 p-4 md:p-5">
-                      <div className="flex items-center gap-4">
+                      <div className="flex items-start gap-4">
                         <Image
                           src="/images/van-mobile-transparent.png"
                           alt="רכב שירות מסלול פלטינום"
@@ -1727,7 +1735,11 @@ export function InfoTabs() {
                           sizes="(max-width: 768px) 64px, 80px"
                           className="h-10 w-16 shrink-0 object-contain md:h-12 md:w-20"
                         />
-                        <p className="text-base font-extrabold text-cyan-200 md:text-lg">מסלול פלטינום - שירות נייד עד הבית</p>
+                        <div className="jacuzzi-track-headline-frame min-w-0 flex-1">
+                          <p className="text-base font-extrabold text-cyan-200 md:text-lg">
+                            מסלול פלטינום - שירות נייד עד הבית
+                          </p>
+                        </div>
                       </div>
                       <p>
                         רכב טיפוח מקצועי ומאובזר מגיע עד פתח הבית, וכל תהליך הטיפול מתבצע בתוך הרכב מתחילתו ועד סופו.
@@ -1737,7 +1749,7 @@ export function InfoTabs() {
                     </div>
 
                     <div className="space-y-3 rounded-2xl bg-white/5 p-4 md:p-5">
-                      <div className="flex items-center gap-4">
+                      <div className="flex items-start gap-4">
                         <Image
                           src={truckPromoNobgSrc}
                           alt="משאית שירות מסלול פרימיום"
@@ -1747,7 +1759,11 @@ export function InfoTabs() {
                           sizes="(max-width: 768px) 64px, 80px"
                           className="h-10 w-16 shrink-0 object-contain md:h-12 md:w-20"
                         />
-                        <p className="text-base font-extrabold text-pink-200 md:text-lg">מסלול פרמיום - הגעה למשאית לפי השכונה שקרובה לך</p>
+                        <div className="jacuzzi-track-headline-frame min-w-0 flex-1">
+                          <p className="text-base font-extrabold text-pink-200 md:text-lg">
+                            מסלול פרמיום - הגעה למשאית לפי השכונה שקרובה לך
+                          </p>
+                        </div>
                       </div>
                       <p>
                         המשאית שלנו פועלת במיקומים משתנים ברחבי ירושלים והסביבה, בהתאם לביקוש ולאזורים נגישים עם חניה

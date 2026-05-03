@@ -19,8 +19,10 @@ export function Services() {
               />
             </div>
             <div className="p-5">
-              <h3 className="text-xl font-extrabold text-jacuzzi-gold">מסלול פלטינום – עד הבית</h3>
-              <p className="mt-2 text-neutral-200">נוחות מלאה: אנחנו מגיעים אליכם עם כל הציוד הנדרש.</p>
+              <div className="jacuzzi-track-headline-frame space-y-2">
+                <h3 className="text-xl font-extrabold text-jacuzzi-gold">מסלול פלטינום – עד הבית</h3>
+                <p className="text-neutral-200">נוחות מלאה: אנחנו מגיעים אליכם עם כל הציוד הנדרש.</p>
+              </div>
             </div>
           </article>
           <article className="premium-card flex flex-col overflow-hidden border-pink-500/40">
@@ -35,8 +37,10 @@ export function Services() {
               />
             </div>
             <div className="p-5">
-              <h3 className="text-xl font-extrabold text-pink-400">מסלול פרימיום – משאית</h3>
-              <p className="mt-2 text-neutral-200">מחיר משתלם יותר: אתם מגיעים למשאית במיקום הפעילות.</p>
+              <div className="jacuzzi-track-headline-frame space-y-2">
+                <h3 className="text-xl font-extrabold text-pink-400">מסלול פרימיום – משאית</h3>
+                <p className="text-neutral-200">מחיר משתלם יותר: אתם מגיעים למשאית במיקום הפעילות.</p>
+              </div>
             </div>
           </article>
         </div>
