@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { existsSync } from "node:fs";
 import { appendFile, mkdir } from "node:fs/promises";
-import { createHmac, timingSafeEqual } from "node:crypto";
+import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import path from "node:path";
 import sharp from "sharp";
 import type { GalleryItem } from "@/data/marketing-data";
@@ -367,7 +367,7 @@ export async function POST(request: Request) {
         } catch (persistErr) {
           console.error("[api/gallery toggle-featured persist]", persistErr);
           return galleryJson(
-            { error: "שמירת התמונה המובילה נכשלה. נסה שוב בעוד רגע." },
+            { error: "שמירת סימון הכוכב נכשלה. נסה שוב בעוד רגע." },
             { status: 500 }
           );
         }
@@ -376,7 +376,7 @@ export async function POST(request: Request) {
 
         return galleryJson({
           ok: true,
-          message: "סימון מובילה עודכן",
+          message: "סימון הכוכב עודכן",
           items: sortGalleryItems(updated)
         });
       }
@@ -555,8 +555,9 @@ export async function POST(request: Request) {
       index < perUploadCaptions.length ? (perUploadCaptions[index] ?? captionSingle) : captionSingle;
     const safeCap = sanitizeGalleryCaption(rawCapForIndex);
 
+    /** מזהה ייחודי גם כשמעלים כמה צ'אנקים באותו מילישנייה (בלי כפילות id ששוברות סימון כוכב) */
     created.push({
-      id: `g-${now}-${index + 1}`,
+      id: `g-${now}-${index + 1}-${randomBytes(4).toString("hex")}`,
       image: imageRef,
       category: "תספורות",
       dogType: "כלב",

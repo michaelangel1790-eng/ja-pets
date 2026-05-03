@@ -53,7 +53,7 @@ export function normalizeGalleryItems(raw: unknown): GalleryItem[] {
       const dogType = typeof row.dogType === "string" ? row.dogType : "כלב";
       const treatmentName = typeof row.treatmentName === "string" ? row.treatmentName : "תספורת וטיפוח";
       const caption = typeof row.caption === "string" ? row.caption : "";
-      const featured = row.featured === true;
+      const featured = row.featured === true || row.featured === "true";
       const createdAt = typeof row.createdAt === "string" ? row.createdAt : undefined;
       const width = typeof row.width === "number" ? row.width : undefined;
       const height = typeof row.height === "number" ? row.height : undefined;

@@ -1244,7 +1244,7 @@ export function InfoTabs() {
 
   const toggleFeaturedImage = async (id: string, featured: boolean) => {
     if (!canManageGallery) {
-      setGalleryAdminMessage("צריך לאמת קוד מנהל לפני סימון תמונה מובילה");
+      setGalleryAdminMessage("צריך לאמת קוד מנהל לפני סימון כוכב");
       return;
     }
     const sessionToken = lastVerifiedGalleryCodeRef.current;
@@ -1278,15 +1278,15 @@ export function InfoTabs() {
           response
         );
         if (!response.ok) {
-          throw new Error(payload.error || "עדכון תמונה מובילה נכשל");
+          throw new Error(payload.error || "עדכון סימון הכוכב נכשל");
         }
         if (Array.isArray(payload.items)) {
           setGalleryImages(payload.items);
         }
-        setGalleryAdminMessage(payload.message?.trim() || "סימון מובילה עודכן");
+        setGalleryAdminMessage(payload.message?.trim() || "סימון הכוכב עודכן");
       } catch (error) {
         setGalleryImages(previousItems);
-        setGalleryAdminMessage(error instanceof Error ? error.message : "עדכון תמונה מובילה נכשל");
+        setGalleryAdminMessage(error instanceof Error ? error.message : "עדכון סימון הכוכב נכשל");
       } finally {
         setFeaturedSavingId(null);
       }
@@ -2264,19 +2264,6 @@ export function InfoTabs() {
                       <p className="truncate text-[11px] font-bold text-white">{item.treatmentName}</p>
                       {item.caption ? <p className="mt-1 inline-flex rounded-full bg-black/55 px-2 py-0.5 text-[10px] text-yellow-100">{item.caption}</p> : null}
                     </figcaption>
-                    {item.featured ? (
-                      <div className="pointer-events-none absolute left-2 top-2 z-[130] inline-flex items-center gap-1 rounded-full border border-yellow-300/90 bg-black/95 px-2 py-0.5 shadow-[0_4px_10px_rgba(0,0,0,0.45)]">
-                        <span className="text-[12px] leading-none text-yellow-300">★</span>
-                        <span className="text-[10px] font-extrabold text-yellow-200">מובילה</span>
-                      </div>
-                    ) : null}
-                    {canManageGallery ? (
-                      <div className="pointer-events-none absolute left-2 top-9 z-[130] inline-flex items-center gap-1 rounded-full border border-white/35 bg-black/80 px-2 py-0.5 shadow-[0_4px_10px_rgba(0,0,0,0.35)]">
-                        <span className={`text-[10px] font-extrabold ${item.featured ? "text-yellow-200" : "text-neutral-300"}`}>
-                          {item.featured ? "★ מסומן כמוביל" : "☆ לא מסומן"}
-                        </span>
-                      </div>
-                    ) : null}
                     {canManageGallery ? (
                       <div className="absolute right-1 top-1 z-[35] flex items-center gap-1">
                         <button
@@ -2293,8 +2280,8 @@ export function InfoTabs() {
                               ? "bg-yellow-400 text-black hover:bg-yellow-300"
                               : "bg-black/70 text-yellow-100 hover:bg-black"
                           } disabled:opacity-50`}
-                          aria-label={item.featured ? "בטל סימון מובילה לתמונה זו" : "סמן תמונה זו כמובילה"}
-                          title={item.featured ? "בטל תמונה מובילה" : "סמן כמובילה"}
+                          aria-label={item.featured ? "בטל כוכב — התמונה לא תוצג בתחילה" : "סמן כוכב — התמונה תוצג בתחילת הגלריה"}
+                          title={item.featured ? "בטל כוכב" : "סמן כוכב (אפשר כמה תמונות)"}
                         >
                           {featuredSavingId === item.id ? (
                             <span className="text-[10px] font-bold" aria-hidden>
@@ -2368,38 +2355,18 @@ export function InfoTabs() {
                     ) : null}
                   </figure>
                   {canManageGallery ? (
-                    <div className="grid grid-cols-2 gap-1">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const shouldDelete = window.confirm("האם למחוק את התמונה לצמיתות?");
-                          if (!shouldDelete) return;
-                          void deleteImage(item.id);
-                        }}
-                        disabled={deletingGalleryItemId === item.id}
-                        className="w-full rounded-lg bg-red-600/85 px-2 py-1 text-center text-xs font-extrabold text-white hover:bg-red-500 disabled:opacity-60"
-                      >
-                        {deletingGalleryItemId === item.id ? "מוחק..." : "מחיקה"}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => void toggleFeaturedImage(item.id, !Boolean(item.featured))}
-                        disabled={featuredSavingId === item.id}
-                        aria-busy={featuredSavingId === item.id}
-                        className={`w-full rounded-lg px-2 py-1 text-center text-xs font-extrabold transition ${
-                          item.featured
-                            ? "bg-yellow-400 text-black hover:bg-yellow-300"
-                            : "bg-white/12 text-yellow-100 hover:bg-white/20"
-                        } disabled:opacity-50`}
-                        aria-label={item.featured ? "הסר מובילה מהתמונה הזו" : "סמן את התמונה הזו כמובילה"}
-                      >
-                        {featuredSavingId === item.id
-                          ? "שומר..."
-                          : item.featured
-                            ? "★ הסר מובילה"
-                            : "★ סמן כמובילה"}
-                      </button>
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const shouldDelete = window.confirm("האם למחוק את התמונה לצמיתות?");
+                        if (!shouldDelete) return;
+                        void deleteImage(item.id);
+                      }}
+                      disabled={deletingGalleryItemId === item.id}
+                      className="w-full rounded-lg bg-red-600/85 px-2 py-1 text-center text-xs font-extrabold text-white hover:bg-red-500 disabled:opacity-60"
+                    >
+                      {deletingGalleryItemId === item.id ? "מוחק..." : "מחיקה"}
+                    </button>
                   ) : null}
                   {canManageGallery ? (
                     <div
@@ -2547,18 +2514,22 @@ export function InfoTabs() {
                                     ? "border-yellow-300/80 bg-yellow-400/90 text-black hover:bg-yellow-300"
                                     : "border-white/30 bg-white/10 text-yellow-100 hover:bg-white/20"
                                 } disabled:opacity-50`}
-                                title={currentGalleryItem.featured ? "בטל סימון כמובילה" : "סמן כמובילה"}
+                                title={
+                                  currentGalleryItem.featured
+                                    ? "בטל כוכב — לא בתחילת הגלריה"
+                                    : "סמן כוכב — בתחילת הגלריה (אפשר כמה)"
+                                }
                                 aria-label={
                                   currentGalleryItem.featured
-                                    ? "בטל סימון תמונה זו כתמונה מובילה בגלריה"
-                                    : "סמן תמונה זו כתמונה מובילה בגלריה"
+                                    ? "בטל כוכב לתמונה זו"
+                                    : "סמן כוכב לתמונה זו"
                                 }
                               >
                                 {featuredSavingId === currentGalleryItem.id
-                                  ? "שומר..."
+                                  ? "…"
                                   : currentGalleryItem.featured
-                                    ? "★ מובילה"
-                                    : "☆ סמן כמובילה"}
+                                    ? "★"
+                                    : "☆"}
                               </button>
                             ) : null}
                           </div>
@@ -2771,7 +2742,7 @@ export function InfoTabs() {
                 {canManageGallery ? (
                   <div className="mt-4 border-t border-white/10 pt-3">
                     <p className="mb-1 text-[11px] text-neutral-300">
-                      ★ כוכב: כל התמונות המסומנות מוצגות ראשונות בטעינה (אפשר כמה). בלי כוכב — אחרייהן.
+                      ★ בתחילת הגלריה — אפשר לסמן כמה תמונות; השאר אחרי כל המסומנות.
                     </p>
                     <p className="mb-2 text-xs font-bold text-cyan-100">העלאת תמונות לגלריה</p>
                     <label className="block cursor-pointer rounded-xl bg-cyan-400/15 px-3 py-2 text-xs font-bold text-cyan-100 hover:bg-cyan-400/25">
