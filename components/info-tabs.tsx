@@ -172,6 +172,27 @@ export function InfoTabs() {
   const [isAboutExpanded, setIsAboutExpanded] = useState(false);
   const lightboxContainerRef = useRef<HTMLDivElement | null>(null);
   const lastLightboxTriggerRef = useRef<HTMLElement | null>(null);
+  /** סנכרון מצב לתור כתיבות — מונע דריסת כיתובים/מובילות בבקשות מקבילות לשרת */
+  const galleryImagesRef = useRef<GalleryItem[]>([]);
+  const galleryWriteChainRef = useRef(Promise.resolve());
+
+  useEffect(() => {
+    galleryImagesRef.current = galleryImages;
+  }, [galleryImages]);
+
+  function enqueueGalleryWrite<T>(fn: () => Promise<T>): Promise<T> {
+    const runPromise = galleryWriteChainRef.current.then(() => fn());
+    galleryWriteChainRef.current = runPromise.then(
+      () => {},
+      () => {}
+    );
+    return runPromise;
+  }
+
+  function orderGalleryFeaturedFirst(items: GalleryItem[]): GalleryItem[] {
+    return [...items].sort((a, b) => Number(Boolean(b.featured)) - Number(Boolean(a.featured)));
+  }
+
   const preventImageSave = (event: React.SyntheticEvent) => {
     event.preventDefault();
   };
@@ -1025,58 +1046,60 @@ export function InfoTabs() {
 
       for (let chunkIndex = 0; chunkIndex < chunks.length; chunkIndex += 1) {
         const chunk = chunks[chunkIndex];
-        const formData = new FormData();
-        formData.append("action", "upload");
-        if (uploadCaption) {
-          formData.append("caption", uploadCaption);
-        }
-        const captionsArr = chunk.map(() => uploadCaption);
-        formData.append("captions", JSON.stringify(captionsArr));
-        chunk.forEach((file) => formData.append("images", file));
+        await enqueueGalleryWrite(async () => {
+          const formData = new FormData();
+          formData.append("action", "upload");
+          if (uploadCaption) {
+            formData.append("caption", uploadCaption);
+          }
+          const captionsArr = chunk.map(() => uploadCaption);
+          formData.append("captions", JSON.stringify(captionsArr));
+          chunk.forEach((file) => formData.append("images", file));
 
-        setGalleryAdminMessage(
-          totalChunks > 1
-            ? `מעלה קבוצה ${chunkIndex + 1} מתוך ${totalChunks} (${chunk.length} תמונות)...`
-            : "מעלה תמונות..."
-        );
+          setGalleryAdminMessage(
+            totalChunks > 1
+              ? `מעלה קבוצה ${chunkIndex + 1} מתוך ${totalChunks} (${chunk.length} תמונות)...`
+              : "מעלה תמונות..."
+          );
 
-        const response = await postGalleryFormWithProgress(formData, sessionToken, (pct) => {
-          const overall = ((chunkIndex + pct / 100) / totalChunks) * 100;
-          setGalleryUploadProgress(Math.min(100, Math.round(overall)));
+          const response = await postGalleryFormWithProgress(formData, sessionToken, (pct) => {
+            const overall = ((chunkIndex + pct / 100) / totalChunks) * 100;
+            setGalleryUploadProgress(Math.min(100, Math.round(overall)));
+          });
+
+          const payload = await safeParseResponseJson<{
+            error?: string;
+            message?: string;
+            items?: GalleryItem[];
+            created?: GalleryItem[];
+            ok?: boolean;
+          }>(response);
+
+          if (!response.ok) {
+            const serverErr =
+              typeof payload.error === "string" && payload.error.trim()
+                ? payload.error.trim()
+                : "העלאת התמונות נכשלה";
+            throw new Error(serverErr);
+          }
+          if (
+            typeof payload.error === "string" &&
+            payload.error.trim() &&
+            !Array.isArray(payload.items) &&
+            !Array.isArray(payload.created)
+          ) {
+            throw new Error(payload.error.trim());
+          }
+          if (Array.isArray(payload.items)) {
+            setGalleryImages(payload.items);
+          } else if (Array.isArray(payload.created) && payload.created.length > 0) {
+            const newlyCreated = payload.created;
+            setGalleryImages((prev) => sortGalleryItemsLikeApi([...newlyCreated, ...prev]));
+          } else {
+            await loadGalleryItems(true, { silent: true });
+          }
+          lastPayload = payload;
         });
-
-        const payload = await safeParseResponseJson<{
-          error?: string;
-          message?: string;
-          items?: GalleryItem[];
-          created?: GalleryItem[];
-          ok?: boolean;
-        }>(response);
-
-        if (!response.ok) {
-          const serverErr =
-            typeof payload.error === "string" && payload.error.trim()
-              ? payload.error.trim()
-              : "העלאת התמונות נכשלה";
-          throw new Error(serverErr);
-        }
-        if (
-          typeof payload.error === "string" &&
-          payload.error.trim() &&
-          !Array.isArray(payload.items) &&
-          !Array.isArray(payload.created)
-        ) {
-          throw new Error(payload.error.trim());
-        }
-        if (Array.isArray(payload.items)) {
-          setGalleryImages(payload.items);
-        } else if (Array.isArray(payload.created) && payload.created.length > 0) {
-          const newlyCreated = payload.created;
-          setGalleryImages((prev) => sortGalleryItemsLikeApi([...newlyCreated, ...prev]));
-        } else {
-          await loadGalleryItems(true, { silent: true });
-        }
-        lastPayload = payload;
       }
 
       setGalleryAdminMessage(
@@ -1102,91 +1125,100 @@ export function InfoTabs() {
       return;
     }
 
-    setDeletingGalleryItemId(id);
     setGalleryAdminMessage("");
-    try {
-      const sessionToken = lastVerifiedGalleryCodeRef.current;
-      if (!sessionToken) {
-        throw new Error("יש לאמת מחדש קוד מנהל");
-      }
-      const formData = new FormData();
-      formData.append("action", "delete");
-      formData.append("id", id);
+    await enqueueGalleryWrite(async () => {
+      setDeletingGalleryItemId(id);
+      try {
+        const sessionToken = lastVerifiedGalleryCodeRef.current;
+        if (!sessionToken) {
+          throw new Error("יש לאמת מחדש קוד מנהל");
+        }
+        const formData = new FormData();
+        formData.append("action", "delete");
+        formData.append("id", id);
 
-      const response = await fetch("/api/gallery", {
-        method: "POST",
-        cache: "no-store",
-        headers: { "x-admin-session": sessionToken },
-        body: formData
-      });
-      const payload = await safeParseResponseJson<{ error?: string; message?: string; items?: GalleryItem[] }>(response);
-      if (!response.ok) {
-        throw new Error(payload.error || "מחיקת התמונה נכשלה");
+        const response = await fetch("/api/gallery", {
+          method: "POST",
+          cache: "no-store",
+          headers: { "x-admin-session": sessionToken },
+          body: formData
+        });
+        const payload = await safeParseResponseJson<{ error?: string; message?: string; items?: GalleryItem[] }>(
+          response
+        );
+        if (!response.ok) {
+          throw new Error(payload.error || "מחיקת התמונה נכשלה");
+        }
+        if (Array.isArray(payload.items)) {
+          setGalleryImages(payload.items);
+        } else {
+          await loadGalleryItems(true, { silent: true });
+        }
+        setGalleryAdminMessage(payload.message || "התמונה נמחקה בהצלחה");
+      } catch (error) {
+        setGalleryAdminMessage(error instanceof Error ? error.message : "מחיקת התמונה נכשלה");
+      } finally {
+        setDeletingGalleryItemId(null);
+        setDeleteConfirmId(null);
       }
-      if (Array.isArray(payload.items)) {
-        setGalleryImages(payload.items);
-      } else {
-        await loadGalleryItems(true, { silent: true });
-      }
-      setGalleryAdminMessage(payload.message || "התמונה נמחקה בהצלחה");
-    } catch (error) {
-      setGalleryAdminMessage(error instanceof Error ? error.message : "מחיקת התמונה נכשלה");
-    } finally {
-      setDeletingGalleryItemId(null);
-      setDeleteConfirmId(null);
-    }
+    });
   };
 
   const reorderImages = async (id: string, direction: "forward" | "backward") => {
-    if (!canManageGallery || reorderingGalleryItemId) return;
+    if (!canManageGallery) return;
     const sessionToken = lastVerifiedGalleryCodeRef.current;
     if (!sessionToken) {
       setGalleryAdminMessage("יש לאמת מחדש קוד מנהל");
       return;
     }
 
-    const currentIndex = featuredFirstGalleryItems.findIndex((item) => item.id === id);
-    if (currentIndex < 0) return;
-    const targetIndex = direction === "forward" ? currentIndex - 1 : currentIndex + 1;
-    if (targetIndex < 0 || targetIndex >= featuredFirstGalleryItems.length) return;
+    await enqueueGalleryWrite(async () => {
+      const ordered = orderGalleryFeaturedFirst(galleryImagesRef.current);
+      const currentIndex = ordered.findIndex((item) => item.id === id);
+      if (currentIndex < 0) return;
+      const targetIndex = direction === "forward" ? currentIndex - 1 : currentIndex + 1;
+      if (targetIndex < 0 || targetIndex >= ordered.length) return;
 
-    const previousOrder = galleryImages;
-    const optimistic = [...featuredFirstGalleryItems];
-    const [moved] = optimistic.splice(currentIndex, 1);
-    optimistic.splice(targetIndex, 0, moved);
-    setGalleryImages(optimistic);
-    setReorderingGalleryItemId(id);
-    setGalleryAdminMessage("");
+      const previousOrder = galleryImagesRef.current;
+      const optimistic = [...ordered];
+      const [moved] = optimistic.splice(currentIndex, 1);
+      optimistic.splice(targetIndex, 0, moved);
+      setGalleryImages(optimistic);
+      setReorderingGalleryItemId(id);
+      setGalleryAdminMessage("");
 
-    try {
-      const response = await fetch("/api/gallery", {
-        method: "POST",
-        cache: "no-store",
-        headers: {
-          "Content-Type": "application/json",
-          "x-admin-session": sessionToken
-        },
-        body: JSON.stringify({
-          action: "reorder",
-          orderedIds: optimistic.map((item) => item.id)
-        })
-      });
-      const payload = await safeParseResponseJson<{ error?: string; message?: string; items?: GalleryItem[] }>(response);
-      if (!response.ok) {
-        throw new Error(payload.error || "סידור התמונות נכשל");
+      try {
+        const response = await fetch("/api/gallery", {
+          method: "POST",
+          cache: "no-store",
+          headers: {
+            "Content-Type": "application/json",
+            "x-admin-session": sessionToken
+          },
+          body: JSON.stringify({
+            action: "reorder",
+            orderedIds: optimistic.map((item) => item.id)
+          })
+        });
+        const payload = await safeParseResponseJson<{ error?: string; message?: string; items?: GalleryItem[] }>(
+          response
+        );
+        if (!response.ok) {
+          throw new Error(payload.error || "סידור התמונות נכשל");
+        }
+        if (Array.isArray(payload.items)) {
+          setGalleryImages(payload.items);
+        } else {
+          await loadGalleryItems(true, { silent: true });
+        }
+        setGalleryAdminMessage(payload.message || "סדר התמונות עודכן");
+      } catch (error) {
+        setGalleryImages(previousOrder);
+        setGalleryAdminMessage(error instanceof Error ? error.message : "סידור התמונות נכשל");
+      } finally {
+        setReorderingGalleryItemId(null);
       }
-      if (Array.isArray(payload.items)) {
-        setGalleryImages(payload.items);
-      } else {
-        await loadGalleryItems(true, { silent: true });
-      }
-      setGalleryAdminMessage(payload.message || "סדר התמונות עודכן");
-    } catch (error) {
-      setGalleryImages(previousOrder);
-      setGalleryAdminMessage(error instanceof Error ? error.message : "סידור התמונות נכשל");
-    } finally {
-      setReorderingGalleryItemId(null);
-    }
+    });
   };
 
   const toggleFeaturedImage = async (id: string, featured: boolean) => {
@@ -1200,41 +1232,44 @@ export function InfoTabs() {
       return;
     }
 
-    const previousItems = galleryImages;
-    setFeaturedSavingId(id);
-    setGalleryImages((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, featured } : item))
-    );
     setGalleryAdminMessage("");
-    try {
-      const response = await fetch("/api/gallery", {
-        method: "POST",
-        cache: "no-store",
-        headers: {
-          "Content-Type": "application/json",
-          "x-admin-session": sessionToken
-        },
-        body: JSON.stringify({
-          action: "toggle-featured",
-          id,
-          featured
-        })
-      });
-      const payload = await safeParseResponseJson<{ error?: string; message?: string; items?: GalleryItem[] }>(response);
-      if (!response.ok) {
-        throw new Error(payload.error || "עדכון תמונה מובילה נכשל");
+    await enqueueGalleryWrite(async () => {
+      const previousItems = galleryImagesRef.current;
+      setFeaturedSavingId(id);
+      setGalleryImages((prev) =>
+        prev.map((item) => (item.id === id ? { ...item, featured } : item))
+      );
+      try {
+        const response = await fetch("/api/gallery", {
+          method: "POST",
+          cache: "no-store",
+          headers: {
+            "Content-Type": "application/json",
+            "x-admin-session": sessionToken
+          },
+          body: JSON.stringify({
+            action: "toggle-featured",
+            id,
+            featured
+          })
+        });
+        const payload = await safeParseResponseJson<{ error?: string; message?: string; items?: GalleryItem[] }>(
+          response
+        );
+        if (!response.ok) {
+          throw new Error(payload.error || "עדכון תמונה מובילה נכשל");
+        }
+        if (Array.isArray(payload.items)) {
+          setGalleryImages(payload.items);
+        }
+        setGalleryAdminMessage(payload.message?.trim() || "סימון מובילה עודכן");
+      } catch (error) {
+        setGalleryImages(previousItems);
+        setGalleryAdminMessage(error instanceof Error ? error.message : "עדכון תמונה מובילה נכשל");
+      } finally {
+        setFeaturedSavingId(null);
       }
-      if (!Array.isArray(payload.items)) {
-        throw new Error("תשובת השרת לא כוללת את רשימת הגלריה המעודכנת");
-      }
-      setGalleryImages(payload.items);
-      setGalleryAdminMessage(payload.message?.trim() || "סימון מובילה עודכן");
-    } catch (error) {
-      setGalleryImages(previousItems);
-      setGalleryAdminMessage(error instanceof Error ? error.message : "עדכון תמונה מובילה נכשל");
-    } finally {
-      setFeaturedSavingId(null);
-    }
+    });
   };
 
   const saveGalleryItemCaption = async (id: string, caption: string) => {
@@ -1247,39 +1282,48 @@ export function InfoTabs() {
       setGalleryAdminMessage("יש לאמת מחדש קוד מנהל");
       return;
     }
-    setCaptionSavingId(id);
     setGalleryAdminMessage("");
-    try {
-      const response = await fetch("/api/gallery", {
-        method: "POST",
-        cache: "no-store",
-        headers: {
-          "Content-Type": "application/json",
-          "x-admin-session": sessionToken
-        },
-        body: JSON.stringify({
-          action: "update-caption",
-          id,
-          caption
-        })
-      });
-      const payload = await safeParseResponseJson<{ error?: string; message?: string; items?: GalleryItem[] }>(response);
-      if (!response.ok) {
-        throw new Error(payload.error || "עדכון הכיתוב נכשל");
-      }
-      if (Array.isArray(payload.items)) {
-        setGalleryImages(payload.items);
-      }
-      setGalleryAdminMessage(
-        typeof payload.message === "string" && payload.message.trim()
-          ? payload.message.trim()
-          : "כיתוב התמונה עודכן"
+    await enqueueGalleryWrite(async () => {
+      const snapshot = galleryImagesRef.current;
+      setCaptionSavingId(id);
+      setGalleryImages((prev) =>
+        prev.map((item) => (item.id === id ? { ...item, caption } : item))
       );
-    } catch (error) {
-      setGalleryAdminMessage(error instanceof Error ? error.message : "עדכון הכיתוב נכשל");
-    } finally {
-      setCaptionSavingId(null);
-    }
+      try {
+        const response = await fetch("/api/gallery", {
+          method: "POST",
+          cache: "no-store",
+          headers: {
+            "Content-Type": "application/json",
+            "x-admin-session": sessionToken
+          },
+          body: JSON.stringify({
+            action: "update-caption",
+            id,
+            caption
+          })
+        });
+        const payload = await safeParseResponseJson<{ error?: string; message?: string; items?: GalleryItem[] }>(
+          response
+        );
+        if (!response.ok) {
+          throw new Error(payload.error || "עדכון הכיתוב נכשל");
+        }
+        if (Array.isArray(payload.items)) {
+          setGalleryImages(payload.items);
+        }
+        setGalleryAdminMessage(
+          typeof payload.message === "string" && payload.message.trim()
+            ? payload.message.trim()
+            : "כיתוב התמונה עודכן"
+        );
+      } catch (error) {
+        setGalleryImages(snapshot);
+        setGalleryAdminMessage(error instanceof Error ? error.message : "עדכון הכיתוב נכשל");
+      } finally {
+        setCaptionSavingId(null);
+      }
+    });
   };
 
   const openLightbox = (index: number, triggerElement?: HTMLElement | null) => {
@@ -2196,7 +2240,7 @@ export function InfoTabs() {
                     {item.featured ? (
                       <div className="pointer-events-none absolute left-2 top-2 z-[130] inline-flex items-center gap-1 rounded-full border border-yellow-300/90 bg-black/95 px-2 py-0.5 shadow-[0_4px_10px_rgba(0,0,0,0.45)]">
                         <span className="text-[12px] leading-none text-yellow-300">★</span>
-                        <span className="text-[10px] font-extrabold text-yellow-200">תמונה מובילה</span>
+                        <span className="text-[10px] font-extrabold text-yellow-200">מובילה</span>
                       </div>
                     ) : null}
                     {canManageGallery ? (
@@ -2215,14 +2259,14 @@ export function InfoTabs() {
                             e.stopPropagation();
                             void toggleFeaturedImage(item.id, !Boolean(item.featured));
                           }}
-                          disabled={featuredSavingId !== null}
+                          disabled={featuredSavingId === item.id}
                           aria-busy={featuredSavingId === item.id}
                           className={`flex h-7 min-w-[42px] items-center justify-center rounded-md px-1 text-[11px] font-extrabold transition ${
                             item.featured
                               ? "bg-yellow-400 text-black hover:bg-yellow-300"
                               : "bg-black/70 text-yellow-100 hover:bg-black"
                           } disabled:opacity-50`}
-                          aria-label={item.featured ? "בטל סימון תמונה מובילה" : "סמן כתמונה מובילה"}
+                          aria-label={item.featured ? "בטל סימון מובילה לתמונה זו" : "סמן תמונה זו כמובילה"}
                           title={item.featured ? "בטל תמונה מובילה" : "סמן כמובילה"}
                         >
                           {featuredSavingId === item.id ? (
@@ -2313,14 +2357,14 @@ export function InfoTabs() {
                       <button
                         type="button"
                         onClick={() => void toggleFeaturedImage(item.id, !Boolean(item.featured))}
-                        disabled={featuredSavingId !== null}
+                        disabled={featuredSavingId === item.id}
                         aria-busy={featuredSavingId === item.id}
                         className={`w-full rounded-lg px-2 py-1 text-center text-xs font-extrabold transition ${
                           item.featured
                             ? "bg-yellow-400 text-black hover:bg-yellow-300"
                             : "bg-white/12 text-yellow-100 hover:bg-white/20"
                         } disabled:opacity-50`}
-                        aria-label={item.featured ? "הסר תמונה מובילה מהגלריה" : "סמן תמונה כמובילה בגלריה"}
+                        aria-label={item.featured ? "הסר מובילה מהתמונה הזו" : "סמן את התמונה הזו כמובילה"}
                       >
                         {featuredSavingId === item.id
                           ? "שומר..."
@@ -2342,7 +2386,7 @@ export function InfoTabs() {
                           e.stopPropagation();
                           void saveGalleryItemCaption(item.id, e.target.value);
                         }}
-                        disabled={captionSavingId !== null}
+                        disabled={captionSavingId === item.id}
                         className="w-full cursor-pointer rounded-md border border-white/20 bg-neutral-900 px-1.5 py-1 text-[11px] text-white outline-none focus:ring-1 focus:ring-yellow-300/50 disabled:opacity-60"
                         aria-label={`כיתוב לתמונה ${item.treatmentName}`}
                       >
@@ -2465,7 +2509,7 @@ export function InfoTabs() {
                               <button
                                 type="button"
                                 onClick={() => void toggleFeaturedImage(currentGalleryItem.id, !Boolean(currentGalleryItem.featured))}
-                                disabled={featuredSavingId !== null}
+                                disabled={featuredSavingId === currentGalleryItem.id}
                                 aria-busy={featuredSavingId === currentGalleryItem.id}
                                 className={`mt-1 rounded-md border px-2 py-0.5 text-[10px] font-extrabold transition ${
                                   currentGalleryItem.featured
