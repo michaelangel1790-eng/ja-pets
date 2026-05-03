@@ -304,13 +304,6 @@ footer[aria-label*="קישורים משפטיים"] a:hover {
   filter: brightness(1.08);
 }
 
-/* מחירון: כותרות עמודות (משקל / תספורת / דילול) - זהב, עוקף ירושת צבע מ-body וממצבי נגישות */
-.jacuzzi-pricing-colhead {
-  color: #d4af37 !important;
-  -webkit-text-fill-color: #d4af37 !important;
-}
-
-
 .section-shell {
   border-radius: 1.5rem;
   background: linear-gradient(145deg, rgba(18, 24, 38, 0.45), rgba(8, 12, 20, 0.3));

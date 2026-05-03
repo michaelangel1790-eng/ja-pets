@@ -18,6 +18,12 @@ const INCLUDED_TAB_CARDS: { title: string; description: string; icon: string }[]
   { title: "התאמה אישית", description: "כל טיפול מותאם לגודל הכלב, אופי הכלב ומצב הפרווה", icon: "✧" }
 ];
 
+/** כותרות עמודות מחירון — זהב (כמו תמיד); הרקע בשורה נפרד בעדינות לפי מסלול */
+const PRICING_COLUMN_HEADER_STYLE: CSSProperties = {
+  color: "#d4af37",
+  WebkitTextFillColor: "#d4af37"
+};
+
 const GALLERY_ADMIN_SESSION_KEY = "jacuzzi-gallery-admin-session";
 const LOCATION_ADMIN_SESSION_KEY = "jacuzzi-location-admin-session";
 const REVIEWS_ADMIN_SESSION_KEY = "jacuzzi-reviews-admin-session";
@@ -50,12 +56,6 @@ function postGalleryFormWithProgress(
     xhr.send(formData);
   });
 }
-
-/** כפה צבע זהב לכותרות טבלת המחירון (יעקוף ירושה מ-main ומ-WebKit fill) */
-const PRICING_COLUMN_HEADER_STYLE: CSSProperties = {
-  color: "#d4af37",
-  WebkitTextFillColor: "#d4af37"
-};
 
 type TabId =
   | "services"
@@ -1033,13 +1033,14 @@ export function InfoTabs() {
       }
       if (Array.isArray(payload.items)) {
         setGalleryImages(payload.items);
+      } else {
+        await loadGalleryItems(true, { silent: true });
       }
       setGalleryAdminMessage(
         typeof payload.message === "string" && payload.message.trim()
           ? payload.message.trim()
           : "התמונה נוספה בהצלחה"
       );
-      await loadGalleryItems(true, { silent: true });
     } catch (error) {
       setGalleryAdminMessage(error instanceof Error ? error.message : "העלאת התמונות נכשלה");
     } finally {
@@ -1079,9 +1080,10 @@ export function InfoTabs() {
       }
       if (Array.isArray(payload.items)) {
         setGalleryImages(payload.items);
+      } else {
+        await loadGalleryItems(true, { silent: true });
       }
       setGalleryAdminMessage(payload.message || "התמונה נמחקה בהצלחה");
-      await loadGalleryItems(true, { silent: true });
     } catch (error) {
       setGalleryAdminMessage(error instanceof Error ? error.message : "מחיקת התמונה נכשלה");
     } finally {
@@ -1130,9 +1132,10 @@ export function InfoTabs() {
       }
       if (Array.isArray(payload.items)) {
         setGalleryImages(payload.items);
+      } else {
+        await loadGalleryItems(true, { silent: true });
       }
       setGalleryAdminMessage(payload.message || "סדר התמונות עודכן");
-      await loadGalleryItems(true, { silent: true });
     } catch (error) {
       setGalleryImages(previousOrder);
       setGalleryAdminMessage(error instanceof Error ? error.message : "סידור התמונות נכשל");
@@ -1186,7 +1189,6 @@ export function InfoTabs() {
       }
       setGalleryImages(payload.items);
       setGalleryAdminMessage("תמונה מובילה עודכנה בהצלחה");
-      await loadGalleryItems(true, { silent: true });
     } catch (error) {
       setGalleryImages(previousItems);
       setGalleryAdminMessage(error instanceof Error ? error.message : "עדכון תמונה מובילה נכשל");
@@ -1380,8 +1382,8 @@ export function InfoTabs() {
               <p className="text-sm font-bold text-cyan-100">מחירון תספורות ודילול</p>
 
               <div className="grid gap-4 lg:grid-cols-2">
-                <article className="overflow-hidden rounded-2xl border border-cyan-400/22 bg-transparent shadow-[0_10px_28px_rgba(0,0,0,0.2)] ring-1 ring-[#D4AF37]/12">
-                  <div className="grid grid-cols-[auto_1fr] items-center gap-12 bg-gradient-to-l from-slate-900/85 to-cyan-950/45 px-4 py-3 md:gap-14">
+                <article className="overflow-hidden rounded-2xl border border-cyan-400/25 bg-transparent shadow-[0_10px_28px_rgba(0,0,0,0.2)]">
+                  <div className="grid grid-cols-[auto_1fr] items-center gap-12 bg-cyan-400/10 px-4 py-3 md:gap-14">
                     <Image
                       src="/images/van-mobile-transparent.png"
                       alt="רכב שירות עד הבית"
@@ -1389,29 +1391,25 @@ export function InfoTabs() {
                       height={80}
                       unoptimized
                       sizes="(max-width: 768px) 112px, 128px"
-                      className="h-14 w-28 shrink-0 object-contain [filter:drop-shadow(0_0_26px_rgba(56,189,248,0.45))_drop-shadow(0_4px_12px_rgba(212,175,55,0.12))] md:h-16 md:w-32"
+                      className="h-14 w-28 shrink-0 object-contain md:h-16 md:w-32"
                     />
                     <div className="ps-6 md:ps-8">
-                      <p className="text-sm font-bold text-cyan-100">מסלול פלטינום - עד הבית</p>
-                      <p className="text-xs text-[#E8D48B]/90">רכב שירות נייד לבית הלקוח</p>
+                      <p className="text-sm font-bold text-cyan-200">מסלול פלטינום - עד הבית</p>
+                      <p className="text-xs text-cyan-100">רכב שירות נייד לבית הלקוח</p>
                     </div>
                   </div>
                   <div className="space-y-1 px-3 pb-3">
-                    <div className="me-auto grid w-full max-w-[430px] grid-cols-[minmax(86px,1fr)_minmax(118px,1fr)_minmax(118px,1fr)] gap-x-4 rounded-lg bg-cyan-500/12 px-3 py-2 text-xs font-semibold ring-1 ring-[#D4AF37]/10">
-                      <div className="jacuzzi-pricing-colhead text-right" style={PRICING_COLUMN_HEADER_STYLE}>
-                        משקל
-                      </div>
-                      <div
-                        className="jacuzzi-pricing-colhead text-right whitespace-nowrap"
-                        style={PRICING_COLUMN_HEADER_STYLE}
-                      >
-                        מחיר לתספורת
-                      </div>
-                      <div
-                        className="jacuzzi-pricing-colhead text-right whitespace-nowrap"
-                        style={PRICING_COLUMN_HEADER_STYLE}
-                      >
-                        מחיר לדילול
+                    <div className="-mx-3 mb-1 px-3">
+                      <div className="grid w-full grid-cols-[minmax(86px,1fr)_minmax(118px,1fr)_minmax(118px,1fr)] gap-x-4 rounded-lg bg-cyan-400/10 px-3 py-2.5 text-xs font-semibold">
+                        <div className="text-right" style={PRICING_COLUMN_HEADER_STYLE}>
+                          משקל
+                        </div>
+                        <div className="text-right whitespace-nowrap" style={PRICING_COLUMN_HEADER_STYLE}>
+                          מחיר לתספורת
+                        </div>
+                        <div className="text-right whitespace-nowrap" style={PRICING_COLUMN_HEADER_STYLE}>
+                          מחיר לדילול
+                        </div>
                       </div>
                     </div>
                     {combinedPricingRows.map((row, index) => (
@@ -1422,15 +1420,15 @@ export function InfoTabs() {
                         }`}
                       >
                         <div className="text-right whitespace-nowrap text-white">{row.size}</div>
-                        <div className="text-right whitespace-nowrap font-semibold text-cyan-200">{row.haircutPlatinum}</div>
-                        <div className="text-right whitespace-nowrap font-semibold text-[#E8D48B]">{row.thinningPlatinum}</div>
+                        <div className="text-right whitespace-nowrap font-semibold text-cyan-300">{row.haircutPlatinum}</div>
+                        <div className="text-right whitespace-nowrap font-semibold text-cyan-200">{row.thinningPlatinum}</div>
                       </div>
                     ))}
                   </div>
                 </article>
 
-                <article className="overflow-hidden rounded-2xl border border-sky-400/22 bg-transparent shadow-[0_10px_28px_rgba(0,0,0,0.2)] ring-1 ring-[#D4AF37]/12">
-                  <div className="grid grid-cols-[auto_1fr] items-center gap-12 bg-gradient-to-l from-slate-900/80 to-sky-950/50 px-4 py-3 md:gap-14">
+                <article className="overflow-hidden rounded-2xl border border-pink-400/25 bg-transparent shadow-[0_10px_28px_rgba(0,0,0,0.2)]">
+                  <div className="grid grid-cols-[auto_1fr] items-center gap-12 bg-pink-500/10 px-4 py-3 md:gap-14">
                     <Image
                       src={truckPromoNobgSrc}
                       alt="משאית שירות פרימיום"
@@ -1438,29 +1436,25 @@ export function InfoTabs() {
                       height={318}
                       unoptimized
                       sizes="(max-width: 768px) 112px, 128px"
-                      className="h-14 w-28 shrink-0 object-contain [filter:drop-shadow(0_0_28px_rgba(56,189,248,0.35))_drop-shadow(0_4px_12px_rgba(212,175,55,0.15))] md:h-16 md:w-32"
+                      className="h-14 w-28 shrink-0 object-contain md:h-16 md:w-32"
                     />
                     <div className="ps-6 md:ps-8">
-                      <p className="text-sm font-bold text-sky-100">מסלול פרמיום - הגעה למשאית לפי השכונה שקרובה לך</p>
-                      <p className="text-xs text-[#E8D48B]/90">מגיעים למשאית במיקום הפעילות</p>
+                      <p className="text-sm font-bold text-pink-200">מסלול פרמיום - הגעה למשאית לפי השכונה שקרובה לך</p>
+                      <p className="text-xs text-pink-100">מגיעים למשאית במיקום הפעילות</p>
                     </div>
                   </div>
                   <div className="space-y-1 px-3 pb-3">
-                    <div className="me-auto grid w-full max-w-[430px] grid-cols-[minmax(86px,1fr)_minmax(118px,1fr)_minmax(118px,1fr)] gap-x-4 rounded-lg bg-sky-500/12 px-3 py-2 text-xs font-semibold ring-1 ring-[#D4AF37]/10">
-                      <div className="jacuzzi-pricing-colhead text-right" style={PRICING_COLUMN_HEADER_STYLE}>
-                        משקל
-                      </div>
-                      <div
-                        className="jacuzzi-pricing-colhead text-right whitespace-nowrap"
-                        style={PRICING_COLUMN_HEADER_STYLE}
-                      >
-                        מחיר לתספורת
-                      </div>
-                      <div
-                        className="jacuzzi-pricing-colhead text-right whitespace-nowrap"
-                        style={PRICING_COLUMN_HEADER_STYLE}
-                      >
-                        מחיר לדילול
+                    <div className="-mx-3 mb-1 px-3">
+                      <div className="grid w-full grid-cols-[minmax(86px,1fr)_minmax(118px,1fr)_minmax(118px,1fr)] gap-x-4 rounded-lg bg-pink-500/10 px-3 py-2.5 text-xs font-semibold">
+                        <div className="text-right" style={PRICING_COLUMN_HEADER_STYLE}>
+                          משקל
+                        </div>
+                        <div className="text-right whitespace-nowrap" style={PRICING_COLUMN_HEADER_STYLE}>
+                          מחיר לתספורת
+                        </div>
+                        <div className="text-right whitespace-nowrap" style={PRICING_COLUMN_HEADER_STYLE}>
+                          מחיר לדילול
+                        </div>
                       </div>
                     </div>
                     {combinedPricingRows.map((row, index) => (
@@ -1471,8 +1465,8 @@ export function InfoTabs() {
                         }`}
                       >
                         <div className="text-right whitespace-nowrap text-white">{row.size}</div>
-                        <div className="text-right whitespace-nowrap font-semibold text-sky-200">{row.haircutPremium}</div>
-                        <div className="text-right whitespace-nowrap font-semibold text-[#E8D48B]">{row.thinningPremium}</div>
+                        <div className="text-right whitespace-nowrap font-semibold text-pink-300">{row.haircutPremium}</div>
+                        <div className="text-right whitespace-nowrap font-semibold text-pink-200">{row.thinningPremium}</div>
                       </div>
                     ))}
                   </div>
