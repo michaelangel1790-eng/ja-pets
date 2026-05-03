@@ -1,5 +1,11 @@
 /** כיתובי גלריה מותרים — זהים בשרת ובממשק מנהל */
-export const GALLERY_ALLOWED_CAPTIONS = ["לפני / אחרי", "תספורת", "רחצה וטיפוח", "עבודה מיוחדת"] as const;
+export const GALLERY_ALLOWED_CAPTIONS = [
+  "לפני / אחרי",
+  "תספורת",
+  "דילול וטיפוח",
+  "רחצה וטיפוח",
+  "עבודה מיוחדת"
+] as const;
 
 const CAPTION_SET = new Set<string>(GALLERY_ALLOWED_CAPTIONS);
 
