@@ -4,6 +4,7 @@ import { existsSync } from "node:fs";
 import { copyFile, mkdir, readFile, writeFile } from "node:fs/promises";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import path from "node:path";
+import { adminConfigurationErrorResponse } from "@/lib/admin-configuration";
 import { getAdminCode } from "@/lib/admin-env";
 import { resolveAdminSessionSecret } from "@/lib/admin-session-secret";
 
@@ -297,64 +298,81 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const clientKey = getClientKey(request);
-  const blockedUntil = getBlockedUntil(clientKey);
-  if (blockedUntil > 0) {
-    const minutesLeft = Math.ceil((blockedUntil - Date.now()) / 60000);
-    return NextResponse.json(
-      { error: `נחסמת זמנית אחרי יותר מדי ניסיונות שגויים. נסה שוב בעוד כ-${minutesLeft} דקות` },
-      { status: 429 }
-    );
-  }
-  const body = (await request.json()) as {
-    code?: string;
-    locations?: unknown;
-    action?: "verify-code" | "save" | "restore-last";
-  };
-  const code = (body.code || "").trim();
-  const configuredAdminCode = getAdminCode();
-  if (!configuredAdminCode) {
-    return NextResponse.json({ error: "קוד מנהל לא הוגדר בשרת" }, { status: 500 });
-  }
-  if (!isAuthorizedRequest(request, code, configuredAdminCode)) {
-    registerFailedAttempt(clientKey);
-    return NextResponse.json({ error: "קוד מנהל שגוי" }, { status: 401 });
-  }
-  clearFailedAttempts(clientKey);
-
-  if (body.action === "verify-code") {
-    const sessionToken = createAdminSessionToken("truck-location-admin");
-    if (!sessionToken) {
-      return NextResponse.json({ error: "לא ניתן ליצור סשן מנהל - בדקו את תצורת השרת" }, { status: 500 });
+  try {
+    const clientKey = getClientKey(request);
+    const blockedUntil = getBlockedUntil(clientKey);
+    if (blockedUntil > 0) {
+      const minutesLeft = Math.ceil((blockedUntil - Date.now()) / 60000);
+      return NextResponse.json(
+        { error: `נחסמת זמנית אחרי יותר מדי ניסיונות שגויים. נסה שוב בעוד כ-${minutesLeft} דקות` },
+        { status: 429 }
+      );
     }
-    return NextResponse.json({ ok: true, sessionToken });
-  }
 
-  if (body.action === "restore-last") {
-    if (!existsSync(TRUCK_LOCATION_BACKUP_FILE)) {
-      return NextResponse.json({ error: "לא נמצאה גרסה קודמת לשחזור" }, { status: 404 });
+    const configErr = adminConfigurationErrorResponse();
+    if (configErr) return configErr;
+
+    let body: {
+      code?: string;
+      locations?: unknown;
+      action?: "verify-code" | "save" | "restore-last";
+    };
+    try {
+      body = (await request.json()) as {
+        code?: string;
+        locations?: unknown;
+        action?: "verify-code" | "save" | "restore-last";
+      };
+    } catch {
+      return NextResponse.json({ error: "בקשה לא תקינה" }, { status: 400 });
     }
-    const backupRaw = await readFile(TRUCK_LOCATION_BACKUP_FILE, "utf8");
-    const backupParsed = JSON.parse(backupRaw) as unknown;
-    const backupLocations = normalizeInputRows(backupParsed);
-    const validationError = validateLocations(backupLocations);
-    if (backupLocations.length === 0 || validationError) {
-      return NextResponse.json({ error: "הגרסה הקודמת לא תקינה לשחזור" }, { status: 400 });
+
+    const code = (body.code || "").trim();
+    const configuredAdminCode = getAdminCode();
+
+    if (!isAuthorizedRequest(request, code, configuredAdminCode)) {
+      registerFailedAttempt(clientKey);
+      return NextResponse.json({ error: "קוד מנהל שגוי" }, { status: 401 });
     }
-    await writeFile(TRUCK_LOCATION_FILE, JSON.stringify(backupLocations, null, 2), "utf8");
-    return NextResponse.json({ ok: true, location: backupLocations[0], locations: backupLocations, source: "restored-backup" });
-  }
+    clearFailedAttempts(clientKey);
 
-  const locations = normalizeInputRows(body.locations);
-  if (locations.length === 0) {
-    return NextResponse.json({ error: "יש להזין לפחות מיקום אחד תקין" }, { status: 400 });
-  }
-  const validationError = validateLocations(locations);
-  if (validationError) {
-    return NextResponse.json({ error: validationError }, { status: 400 });
-  }
+    if (body.action === "verify-code") {
+      const sessionToken = createAdminSessionToken("truck-location-admin");
+      if (!sessionToken) {
+        return NextResponse.json({ error: "קוד מנהל לא הוגדר בשרת" }, { status: 500 });
+      }
+      return NextResponse.json({ ok: true, sessionToken });
+    }
 
-  await writeLocationsWithBackup(locations);
+    if (body.action === "restore-last") {
+      if (!existsSync(TRUCK_LOCATION_BACKUP_FILE)) {
+        return NextResponse.json({ error: "לא נמצאה גרסה קודמת לשחזור" }, { status: 404 });
+      }
+      const backupRaw = await readFile(TRUCK_LOCATION_BACKUP_FILE, "utf8");
+      const backupParsed = JSON.parse(backupRaw) as unknown;
+      const backupLocations = normalizeInputRows(backupParsed);
+      const restoreValidationError = validateLocations(backupLocations);
+      if (backupLocations.length === 0 || restoreValidationError) {
+        return NextResponse.json({ error: "הגרסה הקודמת לא תקינה לשחזור" }, { status: 400 });
+      }
+      await writeFile(TRUCK_LOCATION_FILE, JSON.stringify(backupLocations, null, 2), "utf8");
+      return NextResponse.json({ ok: true, location: backupLocations[0], locations: backupLocations, source: "restored-backup" });
+    }
 
-  return NextResponse.json({ ok: true, location: locations[0], locations, source: "local-admin" });
+    const locations = normalizeInputRows(body.locations);
+    if (locations.length === 0) {
+      return NextResponse.json({ error: "יש להזין לפחות מיקום אחד תקין" }, { status: 400 });
+    }
+    const validationError = validateLocations(locations);
+    if (validationError) {
+      return NextResponse.json({ error: validationError }, { status: 400 });
+    }
+
+    await writeLocationsWithBackup(locations);
+
+    return NextResponse.json({ ok: true, location: locations[0], locations, source: "local-admin" });
+  } catch (error) {
+    console.error("[api/truck-location POST]", error);
+    return NextResponse.json({ error: "אירעה שגיאה בשרת" }, { status: 500 });
+  }
 }

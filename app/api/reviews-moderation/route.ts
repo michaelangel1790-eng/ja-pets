@@ -3,6 +3,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import path from "node:path";
 import { NextResponse } from "next/server";
+import { adminConfigurationErrorResponse } from "@/lib/admin-configuration";
 import { getAdminCode } from "@/lib/admin-env";
 import { resolveAdminSessionSecret } from "@/lib/admin-session-secret";
 
@@ -120,81 +121,100 @@ async function readReviews(filePath: string): Promise<Review[]> {
 }
 
 export async function GET(request: Request) {
-  const adminCode = getAdminCode();
-  if (!adminCode) {
-    return NextResponse.json({ error: "קוד מנהל לא הוגדר בשרת" }, { status: 500 });
-  }
-  const clientKey = getClientKey(request);
-  const blockedUntil = getBlockedUntil(clientKey);
-  if (blockedUntil > 0) {
-    const minutesLeft = Math.ceil((blockedUntil - Date.now()) / 60000);
-    return NextResponse.json(
-      { error: `נחסמת זמנית אחרי יותר מדי ניסיונות שגויים. נסה שוב בעוד כ-${minutesLeft} דקות` },
-      { status: 429 }
-    );
-  }
-  const sessionToken = request.headers.get("x-admin-session");
-  const code = (request.headers.get("x-admin-code") || "").trim();
-  const isAuthorized = verifyAdminSessionToken(sessionToken, "reviews-admin") || code === adminCode;
-  if (!isAuthorized) {
-    registerFailedAttempt(clientKey);
-    return NextResponse.json({ error: "קוד מנהל שגוי" }, { status: 401 });
-  }
-  clearFailedAttempts(clientKey);
+  try {
+    const configErr = adminConfigurationErrorResponse();
+    if (configErr) return configErr;
 
-  await ensureDataFiles();
-  const pending = await readReviews(PENDING_FILE);
-  return NextResponse.json({ pending });
+    const adminCode = getAdminCode();
+    const clientKey = getClientKey(request);
+    const blockedUntil = getBlockedUntil(clientKey);
+    if (blockedUntil > 0) {
+      const minutesLeft = Math.ceil((blockedUntil - Date.now()) / 60000);
+      return NextResponse.json(
+        { error: `נחסמת זמנית אחרי יותר מדי ניסיונות שגויים. נסה שוב בעוד כ-${minutesLeft} דקות` },
+        { status: 429 }
+      );
+    }
+    const sessionToken = request.headers.get("x-admin-session");
+    const code = (request.headers.get("x-admin-code") || "").trim();
+    const isAuthorized = verifyAdminSessionToken(sessionToken, "reviews-admin") || code === adminCode;
+    if (!isAuthorized) {
+      registerFailedAttempt(clientKey);
+      return NextResponse.json({ error: "קוד מנהל שגוי" }, { status: 401 });
+    }
+    clearFailedAttempts(clientKey);
+
+    await ensureDataFiles();
+    const pending = await readReviews(PENDING_FILE);
+    return NextResponse.json({ pending });
+  } catch (error) {
+    console.error("[api/reviews-moderation GET]", error);
+    return NextResponse.json({ error: "אירעה שגיאה בשרת" }, { status: 500 });
+  }
 }
 
 export async function POST(request: Request) {
-  const adminCode = getAdminCode();
-  if (!adminCode) {
-    return NextResponse.json({ error: "קוד מנהל לא הוגדר בשרת" }, { status: 500 });
-  }
-  const clientKey = getClientKey(request);
-  const blockedUntil = getBlockedUntil(clientKey);
-  if (blockedUntil > 0) {
-    const minutesLeft = Math.ceil((blockedUntil - Date.now()) / 60000);
-    return NextResponse.json(
-      { error: `נחסמת זמנית אחרי יותר מדי ניסיונות שגויים. נסה שוב בעוד כ-${minutesLeft} דקות` },
-      { status: 429 }
-    );
-  }
-  const body = (await request.json()) as { code?: string; action?: "approve" | "reject" | "verify-code"; id?: string };
-  const sessionToken = request.headers.get("x-admin-session");
-  const isAuthorized = verifyAdminSessionToken(sessionToken, "reviews-admin") || (body.code || "") === adminCode;
-  if (!isAuthorized) {
-    registerFailedAttempt(clientKey);
-    return NextResponse.json({ error: "קוד מנהל שגוי" }, { status: 401 });
-  }
-  clearFailedAttempts(clientKey);
-  if (body.action === "verify-code") {
-    const sessionToken = createAdminSessionToken("reviews-admin");
-    if (!sessionToken) {
-      return NextResponse.json({ error: "לא ניתן ליצור סשן מנהל - בדקו את תצורת השרת" }, { status: 500 });
+  try {
+    const configErr = adminConfigurationErrorResponse();
+    if (configErr) return configErr;
+
+    const adminCode = getAdminCode();
+    const clientKey = getClientKey(request);
+    const blockedUntil = getBlockedUntil(clientKey);
+    if (blockedUntil > 0) {
+      const minutesLeft = Math.ceil((blockedUntil - Date.now()) / 60000);
+      return NextResponse.json(
+        { error: `נחסמת זמנית אחרי יותר מדי ניסיונות שגויים. נסה שוב בעוד כ-${minutesLeft} דקות` },
+        { status: 429 }
+      );
     }
-    return NextResponse.json({ ok: true, sessionToken });
-  }
-  if (!body.id || !body.action) {
-    return NextResponse.json({ error: "בקשה לא תקינה" }, { status: 400 });
-  }
 
-  await ensureDataFiles();
-  const pending = await readReviews(PENDING_FILE);
-  const approved = await readReviews(APPROVED_FILE);
-  const idx = pending.findIndex((item) => item.id === body.id);
-  if (idx < 0) {
-    return NextResponse.json({ error: "הביקורת לא נמצאה" }, { status: 404 });
+    let body: { code?: string; action?: "approve" | "reject" | "verify-code"; id?: string };
+    try {
+      body = (await request.json()) as { code?: string; action?: "approve" | "reject" | "verify-code"; id?: string };
+    } catch {
+      return NextResponse.json({ error: "בקשה לא תקינה" }, { status: 400 });
+    }
+
+    const headerSession = request.headers.get("x-admin-session");
+    const isAuthorized =
+      verifyAdminSessionToken(headerSession, "reviews-admin") || (body.code || "").trim() === adminCode;
+    if (!isAuthorized) {
+      registerFailedAttempt(clientKey);
+      return NextResponse.json({ error: "קוד מנהל שגוי" }, { status: 401 });
+    }
+    clearFailedAttempts(clientKey);
+
+    if (body.action === "verify-code") {
+      const newSessionToken = createAdminSessionToken("reviews-admin");
+      if (!newSessionToken) {
+        return NextResponse.json({ error: "קוד מנהל לא הוגדר בשרת" }, { status: 500 });
+      }
+      return NextResponse.json({ ok: true, sessionToken: newSessionToken });
+    }
+    if (!body.id || !body.action) {
+      return NextResponse.json({ error: "בקשה לא תקינה" }, { status: 400 });
+    }
+
+    await ensureDataFiles();
+    const pending = await readReviews(PENDING_FILE);
+    const approved = await readReviews(APPROVED_FILE);
+    const idx = pending.findIndex((item) => item.id === body.id);
+    if (idx < 0) {
+      return NextResponse.json({ error: "הביקורת לא נמצאה" }, { status: 404 });
+    }
+
+    const [item] = pending.splice(idx, 1);
+    if (body.action === "approve") {
+      approved.unshift({ ...item, approved: "yes" });
+    }
+
+    await writeFile(PENDING_FILE, JSON.stringify(pending, null, 2), "utf8");
+    await writeFile(APPROVED_FILE, JSON.stringify(approved, null, 2), "utf8");
+
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    console.error("[api/reviews-moderation POST]", error);
+    return NextResponse.json({ error: "אירעה שגיאה בשרת" }, { status: 500 });
   }
-
-  const [item] = pending.splice(idx, 1);
-  if (body.action === "approve") {
-    approved.unshift({ ...item, approved: "yes" });
-  }
-
-  await writeFile(PENDING_FILE, JSON.stringify(pending, null, 2), "utf8");
-  await writeFile(APPROVED_FILE, JSON.stringify(approved, null, 2), "utf8");
-
-  return NextResponse.json({ ok: true });
 }

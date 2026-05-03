@@ -5,6 +5,7 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 import path from "node:path";
 import sharp from "sharp";
 import { galleryItems as fallbackGalleryItems, type GalleryItem } from "@/data/marketing-data";
+import { adminConfigurationErrorResponse } from "@/lib/admin-configuration";
 import { getAdminCode } from "@/lib/admin-env";
 import { resolveAdminSessionSecret } from "@/lib/admin-session-secret";
 
@@ -226,125 +227,142 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const contentType = request.headers.get("content-type") || "";
-  const adminCode = getAdminCode();
-  const clientKey = getClientKey(request);
-  const blockedUntil = getBlockedUntil(clientKey);
-  if (blockedUntil > 0) {
-    const minutesLeft = Math.ceil((blockedUntil - Date.now()) / 60000);
-    return NextResponse.json(
-      { error: `נחסמת זמנית אחרי יותר מדי ניסיונות שגויים. נסה שוב בעוד כ-${minutesLeft} דקות` },
-      { status: 429 }
-    );
-  }
-
-  if (!adminCode) {
-    return NextResponse.json({ error: "קוד מנהל לא הוגדר בשרת" }, { status: 500 });
-  }
-
-  if (contentType.includes("application/json")) {
-    const body = (await request.json()) as {
-      action?: "verify-code" | "reorder" | "toggle-featured";
-      code?: string;
-      orderedIds?: string[];
-      id?: string;
-      featured?: boolean;
-    };
-
-    if (body.action === "verify-code") {
-      if ((body.code || "").trim() !== adminCode) {
-        registerFailedAttempt(clientKey);
-        return NextResponse.json({ error: "קוד מנהל שגוי" }, { status: 401 });
-      }
-      clearFailedAttempts(clientKey);
-      await logGalleryAdminAction(request, "verify-code", { ok: true });
-      const sessionToken = createAdminSessionToken("gallery-admin");
-      if (!sessionToken) {
-        return NextResponse.json({ error: "לא ניתן ליצור סשן מנהל - בדקו את תצורת השרת" }, { status: 500 });
-      }
-      return NextResponse.json({ ok: true, sessionToken });
+  try {
+    const contentType = request.headers.get("content-type") || "";
+    const clientKey = getClientKey(request);
+    const blockedUntil = getBlockedUntil(clientKey);
+    if (blockedUntil > 0) {
+      const minutesLeft = Math.ceil((blockedUntil - Date.now()) / 60000);
+      return NextResponse.json(
+        { error: `נחסמת זמנית אחרי יותר מדי ניסיונות שגויים. נסה שוב בעוד כ-${minutesLeft} דקות` },
+        { status: 429 }
+      );
     }
 
-    if (body.action === "reorder") {
-      if (!isAuthorizedRequest(request, body.code, adminCode)) {
-        registerFailedAttempt(clientKey);
-        return NextResponse.json({ error: "קוד מנהל שגוי" }, { status: 401 });
+    const configErr = adminConfigurationErrorResponse();
+    if (configErr) return configErr;
+
+    const adminCode = getAdminCode();
+
+    if (contentType.includes("application/json")) {
+      let body: {
+        action?: "verify-code" | "reorder" | "toggle-featured";
+        code?: string;
+        orderedIds?: string[];
+        id?: string;
+        featured?: boolean;
+      };
+      try {
+        body = (await request.json()) as {
+          action?: "verify-code" | "reorder" | "toggle-featured";
+          code?: string;
+          orderedIds?: string[];
+          id?: string;
+          featured?: boolean;
+        };
+      } catch {
+        return NextResponse.json({ error: "בקשה לא תקינה" }, { status: 400 });
       }
-      clearFailedAttempts(clientKey);
-      if (!Array.isArray(body.orderedIds) || body.orderedIds.length === 0) {
-        return NextResponse.json({ error: "חסר סדר תמונות לעדכון" }, { status: 400 });
+
+      if (body.action === "verify-code") {
+        if ((body.code || "").trim() !== adminCode) {
+          registerFailedAttempt(clientKey);
+          return NextResponse.json({ error: "קוד מנהל שגוי" }, { status: 401 });
+        }
+        clearFailedAttempts(clientKey);
+        await logGalleryAdminAction(request, "verify-code", { ok: true });
+        const sessionToken = createAdminSessionToken("gallery-admin");
+        if (!sessionToken) {
+          return NextResponse.json({ error: "קוד מנהל לא הוגדר בשרת" }, { status: 500 });
+        }
+        return NextResponse.json({ ok: true, sessionToken });
       }
 
-      const existing = await readGalleryItems();
-      const byId = new Map(existing.map((item) => [item.id, item] as const));
-      const uniqueRequested = Array.from(new Set(body.orderedIds.filter((id) => typeof id === "string" && id.trim())));
-      const knownRequested = uniqueRequested.filter((id) => byId.has(id));
+      if (body.action === "reorder") {
+        if (!isAuthorizedRequest(request, body.code, adminCode)) {
+          registerFailedAttempt(clientKey);
+          return NextResponse.json({ error: "קוד מנהל שגוי" }, { status: 401 });
+        }
+        clearFailedAttempts(clientKey);
+        if (!Array.isArray(body.orderedIds) || body.orderedIds.length === 0) {
+          return NextResponse.json({ error: "חסר סדר תמונות לעדכון" }, { status: 400 });
+        }
 
-      if (knownRequested.length === 0) {
-        return NextResponse.json({ error: "לא נמצאו תמונות לסידור מחדש" }, { status: 400 });
+        const existing = await readGalleryItems();
+        const byId = new Map(existing.map((item) => [item.id, item] as const));
+        const uniqueRequested = Array.from(new Set(body.orderedIds.filter((id) => typeof id === "string" && id.trim())));
+        const knownRequested = uniqueRequested.filter((id) => byId.has(id));
+
+        if (knownRequested.length === 0) {
+          return NextResponse.json({ error: "לא נמצאו תמונות לסידור מחדש" }, { status: 400 });
+        }
+
+        const remaining = existing.map((item) => item.id).filter((id) => !knownRequested.includes(id));
+        const finalOrderIds = [...knownRequested, ...remaining];
+        const reordered = finalOrderIds
+          .map((id) => byId.get(id))
+          .filter((item): item is GalleryItem => Boolean(item));
+
+        await writeGalleryItems(reordered);
+        await logGalleryAdminAction(request, "reorder", { imageCount: reordered.length });
+        return NextResponse.json({
+          ok: true,
+          message: "סדר התמונות עודכן בהצלחה",
+          items: sortGalleryItems(reordered)
+        });
       }
 
-      const remaining = existing.map((item) => item.id).filter((id) => !knownRequested.includes(id));
-      const finalOrderIds = [...knownRequested, ...remaining];
-      const reordered = finalOrderIds
-        .map((id) => byId.get(id))
-        .filter((item): item is GalleryItem => Boolean(item));
+      if (body.action === "toggle-featured") {
+        if (!isAuthorizedRequest(request, body.code, adminCode)) {
+          registerFailedAttempt(clientKey);
+          return NextResponse.json({ error: "קוד מנהל שגוי" }, { status: 401 });
+        }
+        clearFailedAttempts(clientKey);
+        const id = (body.id || "").trim();
+        if (!id) {
+          return NextResponse.json({ error: "חסר מזהה תמונה" }, { status: 400 });
+        }
 
-      await writeGalleryItems(reordered);
-      await logGalleryAdminAction(request, "reorder", { imageCount: reordered.length });
-      return NextResponse.json({
-        ok: true,
-        message: "סדר התמונות עודכן בהצלחה",
-        items: sortGalleryItems(reordered)
-      });
+        const existing = await readGalleryItems();
+        const itemIndex = existing.findIndex((item) => item.id === id);
+        if (itemIndex < 0) {
+          return NextResponse.json({ error: "התמונה לא נמצאה בגלריה" }, { status: 404 });
+        }
+
+        const nextFeatured = typeof body.featured === "boolean" ? body.featured : !Boolean(existing[itemIndex]?.featured);
+        const updated = existing.map((item, index) => (index === itemIndex ? { ...item, featured: nextFeatured } : item));
+        await writeGalleryItems(updated);
+        await logGalleryAdminAction(request, "toggle-featured", { id, featured: nextFeatured });
+
+        return NextResponse.json({
+          ok: true,
+          message: nextFeatured ? "התמונה סומנה כמובילה" : "הוסר סימון התמונה המובילה",
+          items: sortGalleryItems(updated)
+        });
+      }
+
+      return NextResponse.json({ error: "פעולה לא נתמכת" }, { status: 400 });
     }
 
-    if (body.action === "toggle-featured") {
-      if (!isAuthorizedRequest(request, body.code, adminCode)) {
-        registerFailedAttempt(clientKey);
-        return NextResponse.json({ error: "קוד מנהל שגוי" }, { status: 401 });
-      }
-      clearFailedAttempts(clientKey);
-      const id = (body.id || "").trim();
-      if (!id) {
-        return NextResponse.json({ error: "חסר מזהה תמונה" }, { status: 400 });
-      }
-
-      const existing = await readGalleryItems();
-      const itemIndex = existing.findIndex((item) => item.id === id);
-      if (itemIndex < 0) {
-        return NextResponse.json({ error: "התמונה לא נמצאה בגלריה" }, { status: 404 });
-      }
-
-      const nextFeatured = typeof body.featured === "boolean" ? body.featured : !Boolean(existing[itemIndex]?.featured);
-      const updated = existing.map((item, index) => (index === itemIndex ? { ...item, featured: nextFeatured } : item));
-      await writeGalleryItems(updated);
-      await logGalleryAdminAction(request, "toggle-featured", { id, featured: nextFeatured });
-
-      return NextResponse.json({
-        ok: true,
-        message: nextFeatured ? "התמונה סומנה כמובילה" : "הוסר סימון התמונה המובילה",
-        items: sortGalleryItems(updated)
-      });
+    let formData: FormData;
+    try {
+      formData = await request.formData();
+    } catch {
+      return NextResponse.json({ error: "בקשה לא תקינה" }, { status: 400 });
     }
+    const action = String(formData.get("action") || "");
+    const code = String(formData.get("code") || "").trim();
 
-    return NextResponse.json({ error: "פעולה לא נתמכת" }, { status: 400 });
-  }
+    if (action !== "upload" && action !== "delete") {
+      return NextResponse.json({ error: "פעולה לא נתמכת" }, { status: 400 });
+    }
+    if (!isAuthorizedRequest(request, code, adminCode)) {
+      registerFailedAttempt(clientKey);
+      return NextResponse.json({ error: "קוד מנהל שגוי" }, { status: 401 });
+    }
+    clearFailedAttempts(clientKey);
 
-  const formData = await request.formData();
-  const action = String(formData.get("action") || "");
-  const code = String(formData.get("code") || "").trim();
-
-  if (action !== "upload" && action !== "delete") {
-    return NextResponse.json({ error: "פעולה לא נתמכת" }, { status: 400 });
-  }
-  if (!isAuthorizedRequest(request, code, adminCode)) {
-    registerFailedAttempt(clientKey);
-    return NextResponse.json({ error: "קוד מנהל שגוי" }, { status: 401 });
-  }
-  clearFailedAttempts(clientKey);
-
-  if (action === "delete") {
+    if (action === "delete") {
     const id = String(formData.get("id") || "").trim();
     if (!id) {
       return NextResponse.json({ error: "חסר מזהה תמונה למחיקה" }, { status: 400 });
@@ -435,9 +453,13 @@ export async function POST(request: Request) {
   await writeGalleryItems(updated);
   await logGalleryAdminAction(request, "upload", { uploadedCount: created.length, caption: safeCaption || null });
 
-  return NextResponse.json({
-    ok: true,
-    message: "התמונה נוספה בהצלחה",
-    items: sortGalleryItems(updated)
-  });
+    return NextResponse.json({
+      ok: true,
+      message: "התמונה נוספה בהצלחה",
+      items: sortGalleryItems(updated)
+    });
+  } catch (error) {
+    console.error("[api/gallery POST]", error);
+    return NextResponse.json({ error: "אירעה שגיאה בשרת" }, { status: 500 });
+  }
 }

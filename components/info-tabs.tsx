@@ -6,6 +6,7 @@ import { createPortal } from "react-dom";
 import { galleryItems, haircutPricingPlans, thinningPricingPlans, truckMonthlyLocations, type GalleryItem } from "@/data/marketing-data";
 import { truckPromoNobgSrc } from "@/lib/site-images";
 import { faqItems, howItWorksSteps, includedItems, phoneNumbers, testimonials, whatsappMessage, whatsappNumber } from "@/data/site-data";
+import { safeParseResponseJson } from "@/lib/safe-response-json";
 
 const GALLERY_ADMIN_SESSION_KEY = "jacuzzi-gallery-admin-session";
 const LOCATION_ADMIN_SESSION_KEY = "jacuzzi-location-admin-session";
@@ -193,9 +194,9 @@ export function InfoTabs() {
     try {
       const response = await fetch("/api/truck-location", { cache: "no-store" });
       if (!response.ok) return;
-      const payload = (await response.json()) as {
+      const payload = await safeParseResponseJson<{
         locations?: Array<{ date?: string; area?: string; address?: string; hours?: string }>;
-      };
+      }>(response);
       if (Array.isArray(payload.locations) && payload.locations.length > 0) {
         const cleaned = payload.locations
           .map((row) => ({
@@ -223,7 +224,7 @@ export function InfoTabs() {
     try {
       const response = await fetch("/api/gallery", { cache: "default" });
       if (!response.ok) return;
-      const payload = (await response.json()) as { items?: GalleryItem[] };
+      const payload = await safeParseResponseJson<{ items?: GalleryItem[] }>(response);
       if (Array.isArray(payload.items)) {
         setGalleryImages(payload.items);
         hasLoadedGalleryRef.current = true;
@@ -588,7 +589,7 @@ export function InfoTabs() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ action: "verify-code", code: adminCode.trim() })
         });
-        const verifyPayload = (await verifyResponse.json()) as { error?: string; sessionToken?: string };
+        const verifyPayload = await safeParseResponseJson<{ error?: string; sessionToken?: string }>(verifyResponse);
         if (!verifyResponse.ok || !verifyPayload.sessionToken) {
           throw new Error(verifyPayload.error || "אימות מנהל נכשל");
         }
@@ -604,7 +605,7 @@ export function InfoTabs() {
         cache: "no-store",
         headers: { "x-admin-session": sessionToken }
       });
-      const payload = (await response.json()) as { pending?: PendingReviewItem[]; error?: string };
+      const payload = await safeParseResponseJson<{ pending?: PendingReviewItem[]; error?: string }>(response);
       if (!response.ok) {
         throw new Error(payload.error || "טעינת ביקורות ממתינות נכשלה");
       }
@@ -634,7 +635,7 @@ export function InfoTabs() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ action: "verify-code", code: adminCode.trim() })
         });
-        const verifyPayload = (await verifyResponse.json()) as { error?: string; sessionToken?: string };
+        const verifyPayload = await safeParseResponseJson<{ error?: string; sessionToken?: string }>(verifyResponse);
         if (!verifyResponse.ok || !verifyPayload.sessionToken) {
           throw new Error(verifyPayload.error || "אימות מנהל נכשל");
         }
@@ -654,7 +655,7 @@ export function InfoTabs() {
         },
         body: JSON.stringify({ action, id })
       });
-      const payload = (await response.json()) as { error?: string };
+      const payload = await safeParseResponseJson<{ error?: string }>(response);
       if (!response.ok) {
         throw new Error(payload.error || "עדכון הביקורת נכשל");
       }
@@ -727,7 +728,7 @@ export function InfoTabs() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ code: locationAdminCode.trim(), action: "verify-code" })
       });
-      const payload = (await response.json()) as { error?: string; sessionToken?: string };
+      const payload = await safeParseResponseJson<{ error?: string; sessionToken?: string }>(response);
       if (!response.ok || !payload.sessionToken) {
         throw new Error(payload.error || "אימות מנהל נכשל");
       }
@@ -788,7 +789,7 @@ export function InfoTabs() {
         body: JSON.stringify({ locations: cleaned })
       });
 
-      const payload = (await response.json()) as { error?: string; locations?: TruckLocation[] };
+      const payload = await safeParseResponseJson<{ error?: string; locations?: TruckLocation[] }>(response);
       if (!response.ok) {
         throw new Error(payload.error || "שמירת מיקומי המשאית נכשלה");
       }
@@ -826,7 +827,7 @@ export function InfoTabs() {
         body: JSON.stringify({ action: "restore-last" })
       });
 
-      const payload = (await response.json()) as { error?: string; locations?: TruckLocation[] };
+      const payload = await safeParseResponseJson<{ error?: string; locations?: TruckLocation[] }>(response);
       if (!response.ok) {
         throw new Error(payload.error || "שחזור הגרסה האחרונה נכשל");
       }
@@ -863,7 +864,7 @@ export function InfoTabs() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ code: galleryAdminCode.trim(), action: "verify-code" })
       });
-      const payload = (await response.json()) as { error?: string; sessionToken?: string };
+      const payload = await safeParseResponseJson<{ error?: string; sessionToken?: string }>(response);
       if (!response.ok || !payload.sessionToken) {
         throw new Error(payload.error || "אימות מנהל נכשל");
       }
@@ -918,7 +919,7 @@ export function InfoTabs() {
         headers: { "x-admin-session": sessionToken },
         body: formData
       });
-      const payload = (await response.json()) as { error?: string; message?: string; items?: GalleryItem[] };
+      const payload = await safeParseResponseJson<{ error?: string; message?: string; items?: GalleryItem[] }>(response);
       if (!response.ok) {
         throw new Error(payload.error || "העלאת התמונות נכשלה");
       }
@@ -956,7 +957,7 @@ export function InfoTabs() {
         headers: { "x-admin-session": sessionToken },
         body: formData
       });
-      const payload = (await response.json()) as { error?: string; message?: string; items?: GalleryItem[] };
+      const payload = await safeParseResponseJson<{ error?: string; message?: string; items?: GalleryItem[] }>(response);
       if (!response.ok) {
         throw new Error(payload.error || "מחיקת התמונה נכשלה");
       }
@@ -1005,7 +1006,7 @@ export function InfoTabs() {
           orderedIds: optimistic.map((item) => item.id)
         })
       });
-      const payload = (await response.json()) as { error?: string; message?: string; items?: GalleryItem[] };
+      const payload = await safeParseResponseJson<{ error?: string; message?: string; items?: GalleryItem[] }>(response);
       if (!response.ok) {
         throw new Error(payload.error || "סידור התמונות נכשל");
       }
@@ -1048,7 +1049,7 @@ export function InfoTabs() {
           featured
         })
       });
-      const payload = (await response.json()) as { error?: string; message?: string; items?: GalleryItem[] };
+      const payload = await safeParseResponseJson<{ error?: string; message?: string; items?: GalleryItem[] }>(response);
       if (!response.ok) {
         throw new Error(payload.error || "עדכון תמונה מובילה נכשל");
       }
