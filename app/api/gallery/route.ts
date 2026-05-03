@@ -20,6 +20,8 @@ import { resolveAdminSessionSecret } from "@/lib/admin-session-secret";
 import { sanitizeGalleryCaption } from "@/lib/gallery-captions";
 
 export const runtime = "nodejs";
+/** העלאות מרובות + סימון מים — מאריך timeout בפריסות שתומכות (למשל Vercel Pro) */
+export const maxDuration = 60;
 
 const DATA_DIR = path.join(process.cwd(), "data");
 const GALLERY_AUDIT_LOG_FILE = path.join(DATA_DIR, "gallery-admin-audit.log");
@@ -572,10 +574,11 @@ export async function POST(request: Request) {
   await writeGalleryItems(updated);
   await logGalleryAdminAction(request, "upload", { uploadedCount: created.length, caption: captionSingle || null });
 
+  /** רק `created` — גוף קטן; רשימה מלאה עלולה לשבור JSON בדפדפן כשיש מאות תמונות */
   return galleryJson({
     ok: true,
     message: created.length > 1 ? `${created.length} תמונות נוספו בהצלחה` : "התמונה נוספה בהצלחה",
-    items: sortGalleryItems(updated)
+    created
   });
   } catch (error) {
     console.error("[api/gallery POST]", error);

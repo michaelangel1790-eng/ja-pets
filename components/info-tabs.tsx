@@ -8,6 +8,7 @@ import { compressFilesForGalleryUpload } from "@/lib/gallery-compress-client";
 import { truckPromoNobgSrc } from "@/lib/site-images";
 import { faqItems, howItWorksSteps, phoneNumbers, testimonials, whatsappMessage, whatsappNumber } from "@/data/site-data";
 import { safeParseResponseJson } from "@/lib/safe-response-json";
+import { sortGalleryItemsLikeApi } from "@/lib/gallery-sort";
 import { GALLERY_ALLOWED_CAPTIONS } from "@/lib/gallery-captions";
 
 /** פחות תמונות בבקשה אחת — מפחית כשל JSON / timeout / גוף גדול מדי */
@@ -936,16 +937,13 @@ export function InfoTabs() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ code: galleryAdminCode.trim(), action: "verify-code" })
       });
-      const text = await response.text();
-      if (!text.trim()) {
-        throw new Error("התקבלה תשובה ריקה מהשרת");
-      }
-      let payload: { error?: string; ok?: boolean; token?: string; sessionToken?: string; message?: string };
-      try {
-        payload = JSON.parse(text) as typeof payload;
-      } catch {
-        throw new Error("תשובת השרת לא בפורמט צפוי");
-      }
+      const payload = await safeParseResponseJson<{
+        error?: string;
+        ok?: boolean;
+        token?: string;
+        sessionToken?: string;
+        message?: string;
+      }>(response);
       let gallerySessionToken = "";
       if (typeof payload.token === "string" && payload.token.trim()) {
         gallerySessionToken = payload.token.trim();
@@ -953,7 +951,9 @@ export function InfoTabs() {
         gallerySessionToken = payload.sessionToken.trim();
       }
       if (!response.ok || !gallerySessionToken) {
-        throw new Error(payload.error || "אימות מנהל נכשל");
+        throw new Error(
+          (typeof payload.error === "string" && payload.error.trim()) || "אימות מנהל נכשל"
+        );
       }
       lastVerifiedGalleryCodeRef.current = gallerySessionToken;
       try {
@@ -1015,7 +1015,13 @@ export function InfoTabs() {
         chunks.push(toUpload.slice(i, i + GALLERY_UPLOAD_CHUNK_SIZE));
       }
       const totalChunks = chunks.length;
-      let lastPayload: { error?: string; message?: string; items?: GalleryItem[] } = {};
+      let lastPayload: {
+        error?: string;
+        message?: string;
+        items?: GalleryItem[];
+        created?: GalleryItem[];
+        ok?: boolean;
+      } = {};
 
       for (let chunkIndex = 0; chunkIndex < chunks.length; chunkIndex += 1) {
         const chunk = chunks[chunkIndex];
@@ -1039,22 +1045,14 @@ export function InfoTabs() {
           setGalleryUploadProgress(Math.min(100, Math.round(overall)));
         });
 
-        const raw = await response.text();
-        const text = raw.replace(/^\uFEFF/, "").trim();
-        if (!text) {
-          throw new Error("התקבלה תשובה ריקה מהשרת");
-        }
-        if (text.startsWith("<")) {
-          throw new Error(
-            "השרת החזיר תשובה שאינה תקינה (לעיתים בגלל גודל או זמן). נסה להעלות פחות תמונות בכל פעם."
-          );
-        }
-        let payload: { error?: string; message?: string; items?: GalleryItem[] };
-        try {
-          payload = JSON.parse(text) as typeof payload;
-        } catch {
-          throw new Error("תשובת השרת לא בפורמט צפוי");
-        }
+        const payload = await safeParseResponseJson<{
+          error?: string;
+          message?: string;
+          items?: GalleryItem[];
+          created?: GalleryItem[];
+          ok?: boolean;
+        }>(response);
+
         if (!response.ok) {
           const serverErr =
             typeof payload.error === "string" && payload.error.trim()
@@ -1062,8 +1060,19 @@ export function InfoTabs() {
               : "העלאת התמונות נכשלה";
           throw new Error(serverErr);
         }
+        if (
+          typeof payload.error === "string" &&
+          payload.error.trim() &&
+          !Array.isArray(payload.items) &&
+          !Array.isArray(payload.created)
+        ) {
+          throw new Error(payload.error.trim());
+        }
         if (Array.isArray(payload.items)) {
           setGalleryImages(payload.items);
+        } else if (Array.isArray(payload.created) && payload.created.length > 0) {
+          const newlyCreated = payload.created;
+          setGalleryImages((prev) => sortGalleryItemsLikeApi([...newlyCreated, ...prev]));
         } else {
           await loadGalleryItems(true, { silent: true });
         }
