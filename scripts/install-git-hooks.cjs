@@ -2,7 +2,7 @@
  * מגדיר core.hooksPath ל-.githooks (דחיפה אוטומטית אחרי commit).
  * רץ מ-package.json "prepare" — נכשל בשקט אם אין git.
  */
-const { execSync } = require("child_process");
+const { execFileSync } = require("child_process");
 const fs = require("fs");
 const path = require("path");
 
@@ -13,8 +13,19 @@ if (!fs.existsSync(path.join(root, ".git")) || !fs.existsSync(hookFile)) {
   process.exit(0);
 }
 
+function gitExecutable() {
+  if (process.env.GIT_EXE_PATH && fs.existsSync(process.env.GIT_EXE_PATH)) {
+    return process.env.GIT_EXE_PATH;
+  }
+  const winDefault = path.join(process.env.ProgramFiles || "C:\\Program Files", "Git", "bin", "git.exe");
+  if (process.platform === "win32" && fs.existsSync(winDefault)) {
+    return winDefault;
+  }
+  return "git";
+}
+
 try {
-  execSync("git config core.hooksPath .githooks", {
+  execFileSync(gitExecutable(), ["config", "core.hooksPath", ".githooks"], {
     cwd: root,
     encoding: "utf8",
     stdio: ["ignore", "pipe", "pipe"]
