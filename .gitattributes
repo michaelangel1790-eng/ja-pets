@@ -1,0 +1,2 @@
+# Hooks חייבים שורת shebang תקינה (LF)
+.githooks/** text eol=lf

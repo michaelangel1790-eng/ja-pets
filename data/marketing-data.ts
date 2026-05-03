@@ -11,6 +11,11 @@ export type GalleryItem = {
   treatmentName: string;
   caption?: string;
   featured?: boolean;
+  /** מקור: קבצים ב־public/gallery או העלאה ל־Blob */
+  source?: "static" | "blob";
+  createdAt?: string;
+  width?: number;
+  height?: number;
 };
 
 export type PricingPlan = {

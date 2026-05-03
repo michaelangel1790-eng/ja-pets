@@ -3,6 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "prepare": "node scripts/install-git-hooks.cjs",
+    "git:hooks": "node scripts/install-git-hooks.cjs",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
@@ -15,6 +17,8 @@
   },
   "dependencies": {
     "@sentry/nextjs": "^10.51.0",
+    "@vercel/blob": "^2.3.3",
+    "browser-image-compression": "^2.0.2",
     "next": "latest",
     "react": "latest",
     "react-dom": "latest",

@@ -1,0 +1,15 @@
+#!/bin/sh
+# דחיפה אוטומטית ל-GitHub אחרי כל commit בענף main.
+# לבטל פעם אחת: SKIP_AUTO_PUSH=1 git commit ...
+# לבטל לצמיתות: git config --unset core.hooksPath
+
+if [ "$SKIP_AUTO_PUSH" = "1" ]; then
+  exit 0
+fi
+
+branch=$(git symbolic-ref --short HEAD 2>/dev/null) || exit 0
+if [ "$branch" != "main" ]; then
+  exit 0
+fi
+
+exec git push origin "$branch"

@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import Image from "next/image";
 import { createPortal } from "react-dom";
-import { galleryItems, haircutPricingPlans, thinningPricingPlans, truckMonthlyLocations, type GalleryItem } from "@/data/marketing-data";
+import { haircutPricingPlans, thinningPricingPlans, truckMonthlyLocations, type GalleryItem } from "@/data/marketing-data";
+import { compressFilesForGalleryUpload } from "@/lib/gallery-compress-client";
 import { truckPromoNobgSrc } from "@/lib/site-images";
 import { faqItems, howItWorksSteps, includedItems, phoneNumbers, testimonials, whatsappMessage, whatsappNumber } from "@/data/site-data";
 import { safeParseResponseJson } from "@/lib/safe-response-json";
@@ -11,6 +12,35 @@ import { safeParseResponseJson } from "@/lib/safe-response-json";
 const GALLERY_ADMIN_SESSION_KEY = "jacuzzi-gallery-admin-session";
 const LOCATION_ADMIN_SESSION_KEY = "jacuzzi-location-admin-session";
 const REVIEWS_ADMIN_SESSION_KEY = "jacuzzi-reviews-admin-session";
+
+function postGalleryFormWithProgress(
+  formData: FormData,
+  sessionToken: string,
+  onUploadProgress: (pct: number) => void
+): Promise<Response> {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", "/api/gallery");
+    xhr.setRequestHeader("x-admin-session", sessionToken);
+    xhr.responseType = "text";
+    xhr.onload = () => {
+      resolve(
+        new Response(xhr.responseText, {
+          status: xhr.status,
+          statusText: xhr.statusText,
+          headers: { "Content-Type": xhr.getResponseHeader("Content-Type") || "application/json" }
+        })
+      );
+    };
+    xhr.onerror = () => reject(new Error("העלאה נכשלה — בדוק חיבור לאינטרנט"));
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable && e.total > 0) {
+        onUploadProgress(Math.round((e.loaded / e.total) * 100));
+      }
+    };
+    xhr.send(formData);
+  });
+}
 
 /** כפה צבע זהב לכותרות טבלת המחירון (יעקוף ירושה מ-main ומ-WebKit fill) */
 const PRICING_COLUMN_HEADER_STYLE: CSSProperties = {
@@ -92,7 +122,10 @@ export function InfoTabs() {
   const [isRestoringLocations, setIsRestoringLocations] = useState(false);
   const [isLocationAdminAuthorized, setIsLocationAdminAuthorized] = useState(false);
   const [isVerifyingLocationAdminCode, setIsVerifyingLocationAdminCode] = useState(false);
-  const [galleryImages, setGalleryImages] = useState<GalleryItem[]>(galleryItems);
+  const [galleryImages, setGalleryImages] = useState<GalleryItem[]>([]);
+  const [isGalleryLoading, setIsGalleryLoading] = useState(false);
+  /** נכון אחרי טעינה ראשונה מ־API — עד אז לא מציגים רשת תמונות (בלי דמו/מטמון ישן) */
+  const [galleryHydrated, setGalleryHydrated] = useState(false);
   const [galleryAdminCode, setGalleryAdminCode] = useState("");
   const [galleryAdminMessage, setGalleryAdminMessage] = useState("");
   const [isGalleryAdminAuthorized, setIsGalleryAdminAuthorized] = useState(false);
@@ -102,6 +135,10 @@ export function InfoTabs() {
   const lastVerifiedReviewsSessionRef = useRef<string | null>(null);
   const [isVerifyingGalleryAdminCode, setIsVerifyingGalleryAdminCode] = useState(false);
   const [isUploadingGalleryImages, setIsUploadingGalleryImages] = useState(false);
+  const [galleryCompressProgress, setGalleryCompressProgress] = useState(0);
+  const [galleryUploadProgress, setGalleryUploadProgress] = useState(0);
+  const [featuredSavingId, setFeaturedSavingId] = useState<string | null>(null);
+  const [galleryThumbLoaded, setGalleryThumbLoaded] = useState<Record<string, boolean>>({});
   const [reorderingGalleryItemId, setReorderingGalleryItemId] = useState<string | null>(null);
   const [deletingGalleryItemId, setDeletingGalleryItemId] = useState<string | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
@@ -165,6 +202,7 @@ export function InfoTabs() {
     () => [...galleryImages].sort((a, b) => Number(Boolean(b.featured)) - Number(Boolean(a.featured))),
     [galleryImages]
   );
+  const showGalleryGrid = galleryHydrated && !isGalleryLoading;
   const filteredTestimonials = liveTestimonials.filter((item) =>
     ratingFilter === "all" ? true : item.rating === ratingFilter
   );
@@ -217,12 +255,18 @@ export function InfoTabs() {
     }
   }, []);
 
-  const loadGalleryItems = useCallback(async (forceRefresh = false) => {
+  const loadGalleryItems = useCallback(async (forceRefresh = false, options?: { silent?: boolean }) => {
+    const silent = options?.silent ?? false;
     if (hasLoadedGalleryRef.current && !forceRefresh) {
+      setGalleryHydrated(true);
       return;
     }
+    if (!silent) {
+      setIsGalleryLoading(true);
+    }
     try {
-      const response = await fetch("/api/gallery", { cache: "default" });
+      const url = forceRefresh ? `/api/gallery?_=${Date.now()}` : "/api/gallery";
+      const response = await fetch(url, { cache: "no-store" });
       if (!response.ok) return;
       const payload = await safeParseResponseJson<{ items?: GalleryItem[] }>(response);
       if (Array.isArray(payload.items)) {
@@ -230,13 +274,17 @@ export function InfoTabs() {
         hasLoadedGalleryRef.current = true;
       }
     } catch {
-      // Keep local fallback gallery if gallery API is unavailable.
+      // Keep empty list if gallery API is unavailable.
+    } finally {
+      if (!silent) {
+        setIsGalleryLoading(false);
+      }
+      setGalleryHydrated(true);
     }
   }, []);
 
   useEffect(() => {
     loadTruckLocation();
-    loadGalleryItems();
 
     const now = new Date();
     const nextRefresh = new Date(now);
@@ -259,7 +307,7 @@ export function InfoTabs() {
         clearInterval(dailyIntervalId);
       }
     };
-  }, [loadGalleryItems, loadTruckLocation]);
+  }, [loadTruckLocation]);
 
   useEffect(() => {
     if (activeTab === "location") {
@@ -912,12 +960,25 @@ export function InfoTabs() {
       return;
     }
 
-    const files = event.currentTarget.files;
-    if (!files || files.length === 0) return;
+    const rawFiles = event.currentTarget.files;
+    if (!rawFiles || rawFiles.length === 0) return;
+
+    const files = Array.from(rawFiles);
 
     setIsUploadingGalleryImages(true);
-    setGalleryAdminMessage("");
+    setGalleryCompressProgress(0);
+    setGalleryUploadProgress(0);
+    setGalleryAdminMessage("מכווץ ומעלה תמונות...");
     try {
+      const compressed = await compressFilesForGalleryUpload(files, {
+        onProgress: (p) => setGalleryCompressProgress(p)
+      });
+      if (!compressed.ok) {
+        setGalleryAdminMessage(compressed.error);
+        event.currentTarget.value = "";
+        return;
+      }
+
       const sessionToken = lastVerifiedGalleryCodeRef.current;
       if (!sessionToken) {
         throw new Error("יש לאמת מחדש קוד מנהל");
@@ -927,13 +988,12 @@ export function InfoTabs() {
       if (uploadCaption) {
         formData.append("caption", uploadCaption);
       }
-      Array.from(files).forEach((file) => formData.append("images", file));
+      compressed.files.forEach((file) => formData.append("images", file));
 
-      const response = await fetch("/api/gallery", {
-        method: "POST",
-        headers: { "x-admin-session": sessionToken },
-        body: formData
-      });
+      setGalleryUploadProgress(0);
+      const response = await postGalleryFormWithProgress(formData, sessionToken, (pct) =>
+        setGalleryUploadProgress(pct)
+      );
       const payload = await safeParseResponseJson<{ error?: string; message?: string; items?: GalleryItem[] }>(response);
       if (!response.ok) {
         throw new Error(payload.error || "העלאת התמונות נכשלה");
@@ -943,10 +1003,13 @@ export function InfoTabs() {
       }
       setGalleryAdminMessage(payload.message || "התמונה נוספה בהצלחה");
       event.currentTarget.value = "";
+      await loadGalleryItems(true, { silent: true });
     } catch (error) {
       setGalleryAdminMessage(error instanceof Error ? error.message : "העלאת התמונות נכשלה");
     } finally {
       setIsUploadingGalleryImages(false);
+      setGalleryCompressProgress(0);
+      setGalleryUploadProgress(0);
     }
   };
 
@@ -969,6 +1032,7 @@ export function InfoTabs() {
 
       const response = await fetch("/api/gallery", {
         method: "POST",
+        cache: "no-store",
         headers: { "x-admin-session": sessionToken },
         body: formData
       });
@@ -980,6 +1044,7 @@ export function InfoTabs() {
         setGalleryImages(payload.items);
       }
       setGalleryAdminMessage(payload.message || "התמונה נמחקה בהצלחה");
+      await loadGalleryItems(true, { silent: true });
     } catch (error) {
       setGalleryAdminMessage(error instanceof Error ? error.message : "מחיקת התמונה נכשלה");
     } finally {
@@ -1012,6 +1077,7 @@ export function InfoTabs() {
     try {
       const response = await fetch("/api/gallery", {
         method: "POST",
+        cache: "no-store",
         headers: {
           "Content-Type": "application/json",
           "x-admin-session": sessionToken
@@ -1029,6 +1095,7 @@ export function InfoTabs() {
         setGalleryImages(payload.items);
       }
       setGalleryAdminMessage(payload.message || "סדר התמונות עודכן");
+      await loadGalleryItems(true, { silent: true });
     } catch (error) {
       setGalleryImages(previousOrder);
       setGalleryAdminMessage(error instanceof Error ? error.message : "סידור התמונות נכשל");
@@ -1049,11 +1116,20 @@ export function InfoTabs() {
     }
 
     const previousItems = galleryImages;
-    setGalleryImages((prev) => prev.map((item) => (item.id === id ? { ...item, featured } : item)));
+    setFeaturedSavingId(id);
+    setGalleryImages((prev) => {
+      if (featured) {
+        return prev.map((item) =>
+          item.id === id ? { ...item, featured: true } : { ...item, featured: false }
+        );
+      }
+      return prev.map((item) => (item.id === id ? { ...item, featured: false } : item));
+    });
     setGalleryAdminMessage("");
     try {
       const response = await fetch("/api/gallery", {
         method: "POST",
+        cache: "no-store",
         headers: {
           "Content-Type": "application/json",
           "x-admin-session": sessionToken
@@ -1068,13 +1144,17 @@ export function InfoTabs() {
       if (!response.ok) {
         throw new Error(payload.error || "עדכון תמונה מובילה נכשל");
       }
-      if (Array.isArray(payload.items)) {
-        setGalleryImages(payload.items);
+      if (!Array.isArray(payload.items)) {
+        throw new Error("תשובת השרת לא כוללת את רשימת הגלריה המעודכנת");
       }
-      setGalleryAdminMessage(payload.message || "סטטוס תמונה מובילה עודכן");
+      setGalleryImages(payload.items);
+      setGalleryAdminMessage("תמונה מובילה עודכנה בהצלחה");
+      await loadGalleryItems(true, { silent: true });
     } catch (error) {
       setGalleryImages(previousItems);
       setGalleryAdminMessage(error instanceof Error ? error.message : "עדכון תמונה מובילה נכשל");
+    } finally {
+      setFeaturedSavingId(null);
     }
   };
 
@@ -1902,6 +1982,11 @@ export function InfoTabs() {
                 רוצים להוסיף תמונת לפני/אחרי? בקשו מהספר או הספרית לצלם לפני תחילת הטיפול ולאחר הסיום.
               </p>
 
+              {!showGalleryGrid ? (
+                <p className="min-h-[12rem] rounded-2xl border border-white/10 bg-black/15 px-3 py-10 text-center text-sm text-neutral-200">
+                  טוען גלריה...
+                </p>
+              ) : (
               <div
                 className="rounded-2xl border border-white/10 bg-black/15 p-2 shadow-inner md:p-3"
                 onContextMenu={preventImageSave}
@@ -1911,6 +1996,19 @@ export function InfoTabs() {
                   const currentDisplayIndex = featuredFirstGalleryItems.findIndex((galleryItem) => galleryItem.id === item.id);
                   const isFirstImage = currentDisplayIndex <= 0;
                   const isLastImage = currentDisplayIndex === featuredFirstGalleryItems.length - 1;
+                  const priorityThumb = currentDisplayIndex >= 0 && currentDisplayIndex < 8;
+                  const thumbReady = Boolean(galleryThumbLoaded[item.id]);
+                  const tw = item.width ?? 1200;
+                  const th = item.height ?? 800;
+                  const maxThumbSide = 1200;
+                  const thumbW =
+                    tw >= th
+                      ? Math.min(tw, maxThumbSide)
+                      : Math.max(1, Math.round((tw / th) * Math.min(th, maxThumbSide)));
+                  const thumbH =
+                    tw >= th
+                      ? Math.max(1, Math.round((th / tw) * Math.min(tw, maxThumbSide)))
+                      : Math.min(th, maxThumbSide);
                   return (
                   <div key={item.id} className="space-y-1">
                   <figure className="gallery-tile group relative aspect-square overflow-hidden border-0 bg-transparent outline-none shadow-none">
@@ -1930,15 +2028,25 @@ export function InfoTabs() {
                         openLightbox(currentDisplayIndex, event.currentTarget);
                       }}
                     >
+                      {!thumbReady ? (
+                        <span
+                          className="gallery-tile-image absolute inset-0 z-0 block animate-pulse bg-neutral-800/70"
+                          aria-hidden
+                        />
+                      ) : null}
                       <Image
                         src={item.image}
                         alt={`${item.treatmentName} - ${item.dogType}`}
-                        width={1200}
-                        height={800}
+                        width={thumbW}
+                        height={thumbH}
                         unoptimized
                         sizes="(max-width: 768px) 50vw, 25vw"
-                        className="gallery-tile-image h-full w-full border-0 bg-transparent object-cover object-center outline-none ring-0 shadow-none transition-transform duration-300 ease-out md:group-hover:scale-[1.04] group-active:scale-[1.02]"
-                        loading="lazy"
+                        priority={priorityThumb}
+                        loading={priorityThumb ? "eager" : "lazy"}
+                        className={`gallery-tile-image relative z-[1] h-full w-full border-0 bg-transparent object-cover object-center outline-none ring-0 shadow-none transition-transform transition-opacity duration-300 ease-out md:group-hover:scale-[1.04] group-active:scale-[1.02] ${thumbReady ? "opacity-100" : "opacity-0"}`}
+                        onLoadingComplete={() =>
+                          setGalleryThumbLoaded((prev) => ({ ...prev, [item.id]: true }))
+                        }
                         onContextMenu={preventImageSave}
                         onDragStart={preventImageSave}
                       />
@@ -1969,15 +2077,23 @@ export function InfoTabs() {
                             e.stopPropagation();
                             void toggleFeaturedImage(item.id, !Boolean(item.featured));
                           }}
+                          disabled={featuredSavingId !== null}
+                          aria-busy={featuredSavingId === item.id}
                           className={`flex h-7 min-w-[42px] items-center justify-center rounded-md px-1 text-[11px] font-extrabold transition ${
                             item.featured
                               ? "bg-yellow-400 text-black hover:bg-yellow-300"
                               : "bg-black/70 text-yellow-100 hover:bg-black"
-                          }`}
+                          } disabled:opacity-50`}
                           aria-label={item.featured ? "בטל סימון תמונה מובילה" : "סמן כתמונה מובילה"}
                           title={item.featured ? "בטל תמונה מובילה" : "סמן כמובילה"}
                         >
-                          <span aria-hidden>★</span>
+                          {featuredSavingId === item.id ? (
+                            <span className="text-[10px] font-bold" aria-hidden>
+                              …
+                            </span>
+                          ) : (
+                            <span aria-hidden>★</span>
+                          )}
                         </button>
                         <button
                           type="button"
@@ -2059,29 +2175,39 @@ export function InfoTabs() {
                       <button
                         type="button"
                         onClick={() => void toggleFeaturedImage(item.id, !Boolean(item.featured))}
+                        disabled={featuredSavingId !== null}
+                        aria-busy={featuredSavingId === item.id}
                         className={`w-full rounded-lg px-2 py-1 text-center text-xs font-extrabold transition ${
                           item.featured
                             ? "bg-yellow-400 text-black hover:bg-yellow-300"
                             : "bg-white/12 text-yellow-100 hover:bg-white/20"
-                        }`}
+                        } disabled:opacity-50`}
                         aria-label={item.featured ? "הסר תמונה מובילה מהגלריה" : "סמן תמונה כמובילה בגלריה"}
                       >
-                        {item.featured ? "★ הסר מובילה" : "★ סמן כמובילה"}
+                        {featuredSavingId === item.id
+                          ? "שומר..."
+                          : item.featured
+                            ? "★ הסר מובילה"
+                            : "★ סמן כמובילה"}
                       </button>
                     </div>
                   ) : null}
                   </div>
-                )})}
+                );
+                })}
               </div>
               </div>
+              )}
 
-              {featuredFirstGalleryItems.length === 0 ? (
+              {showGalleryGrid && featuredFirstGalleryItems.length === 0 ? (
                 <p className="rounded-xl bg-white/5 px-3 py-2 text-xs text-neutral-200">
-                  אין כרגע תמונות בגלריה. אפשר להעלות תמונות חדשות דרך ניהול גלריה.
+                  אין תמונות בגלריה כרגע
                 </p>
               ) : null}
 
-              {!isDesktopGalleryViewport && featuredFirstGalleryItems.length > pagedGalleryItems.length ? (
+              {showGalleryGrid &&
+              !isDesktopGalleryViewport &&
+              featuredFirstGalleryItems.length > pagedGalleryItems.length ? (
                 <div className="flex items-center justify-center pt-1">
                   <button
                     type="button"
@@ -2097,7 +2223,9 @@ export function InfoTabs() {
                 </div>
               ) : null}
 
-              {isDesktopGalleryViewport && featuredFirstGalleryItems.length > GALLERY_ITEMS_PER_PAGE ? (
+              {showGalleryGrid &&
+              isDesktopGalleryViewport &&
+              featuredFirstGalleryItems.length > GALLERY_ITEMS_PER_PAGE ? (
                 <div className="flex items-center justify-center gap-2 pt-1">
                   <button
                     type="button"
@@ -2174,11 +2302,13 @@ export function InfoTabs() {
                               <button
                                 type="button"
                                 onClick={() => void toggleFeaturedImage(currentGalleryItem.id, !Boolean(currentGalleryItem.featured))}
+                                disabled={featuredSavingId !== null}
+                                aria-busy={featuredSavingId === currentGalleryItem.id}
                                 className={`mt-1 rounded-md border px-2 py-0.5 text-[10px] font-extrabold transition ${
                                   currentGalleryItem.featured
                                     ? "border-yellow-300/80 bg-yellow-400/90 text-black hover:bg-yellow-300"
                                     : "border-white/30 bg-white/10 text-yellow-100 hover:bg-white/20"
-                                }`}
+                                } disabled:opacity-50`}
                                 title={currentGalleryItem.featured ? "בטל סימון כמובילה" : "סמן כמובילה"}
                                 aria-label={
                                   currentGalleryItem.featured
@@ -2186,7 +2316,11 @@ export function InfoTabs() {
                                     : "סמן תמונה זו כתמונה מובילה בגלריה"
                                 }
                               >
-                                {currentGalleryItem.featured ? "★ מובילה" : "☆ סמן כמובילה"}
+                                {featuredSavingId === currentGalleryItem.id
+                                  ? "שומר..."
+                                  : currentGalleryItem.featured
+                                    ? "★ מובילה"
+                                    : "☆ סמן כמובילה"}
                               </button>
                             ) : null}
                           </div>
@@ -2369,7 +2503,9 @@ export function InfoTabs() {
                   <div className="mt-4 border-t border-white/10 pt-3">
                     <p className="mb-2 text-xs font-bold text-cyan-100">העלאת תמונות לגלריה</p>
                     <label className="block cursor-pointer rounded-xl bg-cyan-400/15 px-3 py-2 text-xs font-bold text-cyan-100 hover:bg-cyan-400/25">
-                      {isUploadingGalleryImages ? "מעלה תמונות..." : "בחר תמונות להעלאה"}
+                      {isUploadingGalleryImages
+                        ? `מכווץ ומעלה… דחיסה ${galleryCompressProgress}% · העלאה ${galleryUploadProgress}%`
+                        : "בחר תמונות להעלאה"}
                       <input
                         type="file"
                         accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"

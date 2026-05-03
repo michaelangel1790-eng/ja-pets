@@ -4,8 +4,8 @@ import { withSentryConfig } from "@sentry/nextjs";
 const isDev = process.env.NODE_ENV !== "production";
 /** Plausible (אנליטיקה) + Sentry — רק אם הוגדרו במשתני סביבה */
 const cspValue = isDev
-  ? "default-src 'self'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://plausible.io; connect-src 'self' https://wa.me https://docs.google.com https://*.ingest.sentry.io https://*.ingest.de.sentry.io https://plausible.io; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
-  : "default-src 'self'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' https://plausible.io; connect-src 'self' https://wa.me https://docs.google.com https://*.ingest.sentry.io https://*.ingest.de.sentry.io https://plausible.io; frame-ancestors 'none'; base-uri 'self'; form-action 'self'";
+  ? "default-src 'self'; img-src 'self' data: blob: https://*.public.blob.vercel-storage.com; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://plausible.io; connect-src 'self' https://wa.me https://docs.google.com https://*.ingest.sentry.io https://*.ingest.de.sentry.io https://plausible.io; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+  : "default-src 'self'; img-src 'self' data: blob: https://*.public.blob.vercel-storage.com; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' https://plausible.io; connect-src 'self' https://wa.me https://docs.google.com https://*.ingest.sentry.io https://*.ingest.de.sentry.io https://plausible.io; frame-ancestors 'none'; base-uri 'self'; form-action 'self'";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
@@ -13,6 +13,13 @@ const nextConfig: NextConfig = {
   allowedDevOrigins: ["127.0.0.1", "localhost", "192.168.1.156"],
   images: {
     formats: ["image/avif", "image/webp"],
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "*.public.blob.vercel-storage.com",
+        pathname: "/**"
+      }
+    ]
   },
   async headers() {
     const globalSecurity = [

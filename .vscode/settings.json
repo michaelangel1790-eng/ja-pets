@@ -1,4 +1,5 @@
 {
+  "terminal.integrated.defaultProfile.windows": "PowerShell (Git PATH)",
   "terminal.integrated.profiles.windows": {
     "PowerShell (Git PATH)": {
       "source": "PowerShell",
