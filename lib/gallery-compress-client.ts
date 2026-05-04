@@ -4,7 +4,8 @@
 import imageCompression from "browser-image-compression";
 
 const MAX_FILES_PER_UPLOAD = 10;
-const MAX_ORIGINAL_BYTES = 5 * 1024 * 1024;
+/** מאפשרים קבצים גדולים יותר לפני דחיסה; בפועל יועלו אחרי דחיסה ל-WebP. */
+const MAX_ORIGINAL_BYTES = 20 * 1024 * 1024;
 const MAX_SIDE = 1200;
 const WEBP_QUALITY = 0.85;
 
@@ -64,7 +65,7 @@ export async function compressFilesForGalleryUpload(
     if (file.size > MAX_ORIGINAL_BYTES) {
       return {
         ok: false,
-        error: "כל תמונה חייבת להיות עד 5MB לפני דחיסה"
+        error: "כל תמונה חייבת להיות עד 20MB לפני דחיסה"
       };
     }
 

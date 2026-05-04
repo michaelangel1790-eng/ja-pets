@@ -31,7 +31,7 @@ const BLOCK_DURATION_MS = 48 * 60 * 60 * 1000;
 const failedAttemptsByClient = new Map<string, { count: number; blockedUntil: number }>();
 const ADMIN_SESSION_TTL_MS = 12 * 60 * 60 * 1000;
 const MAX_FILES_PER_UPLOAD = 10;
-const MAX_BYTES_PER_IMAGE_ORIGINAL = 5 * 1024 * 1024;
+const MAX_BYTES_PER_IMAGE_ORIGINAL = 20 * 1024 * 1024;
 
 /** Vercel serverless ללא Blob — כתיבה לקובץ/דיסק לא נשמרת בין הפעלות */
 const FREE_HOSTING_GALLERY_WRITE_HE =
@@ -514,7 +514,7 @@ export async function POST(request: Request) {
     }
     if (file.size > MAX_BYTES_PER_IMAGE_ORIGINAL) {
       return galleryJson(
-        { error: "כל תמונה חייבת להיות עד 5MB לפני דחיסה בדפדפן" },
+        { error: "כל תמונה חייבת להיות עד 20MB לפני דחיסה בדפדפן" },
         { status: 400 }
       );
     }
