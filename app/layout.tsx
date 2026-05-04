@@ -42,7 +42,7 @@ export const metadata: Metadata = {
 /** רוחב מסך מכשיר, זום נגיש (לא נועלים maximum-scale=1), safe-area ל-iOS */
 export const viewport: Viewport = {
   width: "device-width",
-  initialScale: 1,
+  initialScale: 0.95,
   maximumScale: 5,
   viewportFit: "cover"
 };

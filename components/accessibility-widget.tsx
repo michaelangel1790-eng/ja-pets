@@ -52,8 +52,8 @@ const FAB_POS_V5_FALLBACK = "jacuzzi_a11y_fab_pos_v5";
 const FAB_POS_PREV_KEY = "jacuzzi_a11y_fab_pos_v4";
 const FAB_POS_LEGACY_KEY = "jacuzzi_a11y_fab_pos_v2";
 
-/** גודל לחישוב גבולות גרירה (דסקטופ 56px; במובייל הכפתור 36px אך נשאר מרווח בטיחות) */
-const FAB_CLAMP_SIZE = 56;
+/** גודל לחישוב גבולות גרירה (דסקטופ 48px; במובייל הכפתור 32px עם מרווח בטיחות) */
+const FAB_CLAMP_SIZE = 48;
 const DRAG_THRESHOLD_PX = 8;
 
 const MENU_ID = "jacuzzi-accessibility-menu";
@@ -156,7 +156,7 @@ function bottomChromeReservePx(): number {
 
 /** ברירת מחדל: פינה תחתונה־שמאלית - מרחק מהקצה הפיזי השמאלי של המסך */
 function defaultFabInsetLeftPx(_vw: number): number {
-  return 8;
+  return 2;
 }
 
 function migrateStoredFabLeftForDesktop(l: number, _vw: number): number {
@@ -383,7 +383,7 @@ function PageStructureDialog({
 }
 
 function clampFabToViewport(l: number, b: number): FabPosition {
-  const m = 8;
+  const m = 2;
   const minB = bottomChromeReservePx();
   if (typeof window === "undefined") {
     return {
@@ -402,7 +402,7 @@ function clampFabToViewport(l: number, b: number): FabPosition {
 
 function loadFabPosition(): FabPosition {
   if (typeof window === "undefined") {
-    return { l: 8, b: bottomChromeReservePx() + 10 };
+    return { l: 2, b: bottomChromeReservePx() + 10 };
   }
   try {
     const rawV6 = localStorage.getItem(FAB_POS_KEY);

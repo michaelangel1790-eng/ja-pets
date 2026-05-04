@@ -1539,7 +1539,12 @@ export function InfoTabs() {
 
           {activeTab === "pricing" ? (
             <div role="tabpanel" id="panel-pricing" aria-labelledby="tab-pricing" className="space-y-4">
-              <p className="text-sm font-bold text-cyan-100">מחירון תספורות ודילול</p>
+              <p
+                className="text-sm font-bold !text-[#d4af37]"
+                style={{ color: "#d4af37", WebkitTextFillColor: "#d4af37" }}
+              >
+                מחירון תספורות ודילול
+              </p>
 
               <div className="grid gap-4 lg:grid-cols-2">
                 <article className="flex flex-col overflow-hidden rounded-2xl border border-cyan-400/25 bg-cyan-400/10 shadow-[0_10px_28px_rgba(0,0,0,0.2)]">
@@ -1551,7 +1556,7 @@ export function InfoTabs() {
                       height={80}
                       unoptimized
                       sizes="(max-width: 768px) 112px, 128px"
-                      className="h-14 w-28 shrink-0 object-contain md:h-16 md:w-32"
+                      className="h-14 w-28 shrink-0 object-contain opacity-100 [filter:drop-shadow(0_0_36px_rgba(56,189,248,0.55))_drop-shadow(0_0_56px_rgba(255,255,255,0.12))_drop-shadow(0_4px_14px_rgba(255,255,255,0.22))] md:h-16 md:w-32"
                     />
                     <div className="ps-6 md:ps-8">
                       <div className="jacuzzi-track-headline-frame space-y-1">
@@ -1596,7 +1601,7 @@ export function InfoTabs() {
                       height={318}
                       unoptimized
                       sizes="(max-width: 768px) 112px, 128px"
-                      className="h-14 w-28 shrink-0 object-contain md:h-16 md:w-32"
+                      className="h-14 w-28 shrink-0 object-contain opacity-100 [filter:drop-shadow(0_0_36px_rgba(236,72,153,0.5))_drop-shadow(0_0_56px_rgba(255,255,255,0.12))_drop-shadow(0_4px_14px_rgba(255,255,255,0.22))] md:h-16 md:w-32"
                     />
                     <div className="ps-6 md:ps-8">
                       <div className="jacuzzi-track-headline-frame space-y-1">

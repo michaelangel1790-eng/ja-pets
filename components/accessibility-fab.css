@@ -36,10 +36,10 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
-  min-width: 36px;
-  min-height: 36px;
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  min-height: 28px;
   border-radius: 9999px;
   padding: 0;
   margin: 0;
@@ -91,22 +91,22 @@
 }
 
 #jacuzzi-a11y-root [data-jacuzzi-a11y-fab="trigger"] svg {
-  width: 18px;
-  height: 18px;
+  width: 13px;
+  height: 13px;
   flex-shrink: 0;
 }
 
 @media (min-width: 768px) {
   #jacuzzi-a11y-root [data-jacuzzi-a11y-fab="trigger"] {
-    width: 56px;
-    height: 56px;
-    min-width: 56px;
-    min-height: 56px;
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    min-height: 48px;
   }
 
   #jacuzzi-a11y-root [data-jacuzzi-a11y-fab="trigger"] svg {
-    width: 30px;
-    height: 30px;
+    width: 24px;
+    height: 24px;
   }
 }
 
