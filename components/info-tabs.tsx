@@ -2249,8 +2249,8 @@ export function InfoTabs() {
                       />
                     </button>
                     {item.caption ? (
-                      <figcaption className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-2 text-right">
-                        <p className="mt-1 inline-flex rounded-full bg-black/55 px-2 py-0.5 text-[10px] text-yellow-100">
+                      <figcaption className="pointer-events-none absolute inset-x-0 bottom-0 z-[4] bg-gradient-to-t from-black/70 to-transparent p-2 text-right">
+                        <p className="inline-flex rounded-full bg-black/55 px-2 py-0.5 text-[10px] text-yellow-100">
                           {item.caption}
                         </p>
                       </figcaption>
