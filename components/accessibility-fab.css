@@ -21,6 +21,30 @@
   pointer-events: none;
   position: fixed;
   z-index: 1;
+  left: 0 !important;
+  inset-inline-start: 0 !important;
+  right: auto !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  transform: none !important;
+}
+
+@media (max-width: 767px) {
+  #jacuzzi-a11y-root [data-jacuzzi-a11y-fab="shell"] {
+    left: -2px !important;
+    inset-inline-start: -2px !important;
+  }
+}
+
+@media (min-width: 768px) {
+  #jacuzzi-a11y-root [data-jacuzzi-a11y-fab="shell"] {
+    left: 0 !important;
+    inset-inline-start: 0 !important;
+  }
+
+  #jacuzzi-a11y-root [data-jacuzzi-a11y-fab="inner"] {
+    transform: none !important;
+  }
 }
 
 #jacuzzi-a11y-root [data-jacuzzi-a11y-fab="inner"] {
@@ -28,6 +52,8 @@
   position: relative;
   display: inline-flex;
   flex-shrink: 0;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
 /* Trigger is NOT a <button> - avoids every global button / role=button rule */

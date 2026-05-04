@@ -55,6 +55,7 @@ const FAB_POS_LEGACY_KEY = "jacuzzi_a11y_fab_pos_v2";
 /** גודל לחישוב גבולות גרירה (דסקטופ 48px; במובייל הכפתור 32px עם מרווח בטיחות) */
 const FAB_CLAMP_SIZE = 48;
 const DRAG_THRESHOLD_PX = 8;
+const FAB_DRAG_ENABLED = false;
 
 const MENU_ID = "jacuzzi-accessibility-menu";
 const ALT_CAPTION_MARK = "data-jacuzzi-alt-caption";
@@ -813,6 +814,7 @@ export function AccessibilityWidget() {
   }, [persistFabPos]);
 
   const handleFabPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (!FAB_DRAG_ENABLED) return;
     dragState.current = {
       active: true,
       moved: false,
@@ -831,6 +833,7 @@ export function AccessibilityWidget() {
   };
 
   const handleFabPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (!FAB_DRAG_ENABLED) return;
     const state = dragState.current;
     if (!state?.active) return;
     const dx = event.clientX - state.startX;
@@ -845,6 +848,7 @@ export function AccessibilityWidget() {
   };
 
   const handleFabPointerUp = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (!FAB_DRAG_ENABLED) return;
     const state = dragState.current;
     dragState.current = null;
     try {
@@ -942,17 +946,15 @@ export function AccessibilityWidget() {
   }
 
   const shellPositionStyle: React.CSSProperties = {
-    left: fabPos.l,
+    left: "0px",
     right: "auto",
     top: "auto",
     bottom: `calc(${fabPos.b}px + env(safe-area-inset-bottom, 0px))`,
-    touchAction: "manipulation",
-    minWidth: FAB_CLAMP_SIZE + 8,
-    minHeight: FAB_CLAMP_SIZE + 8
+    touchAction: "manipulation"
   };
 
   const shell = (
-    <div data-jacuzzi-a11y-fab="shell" style={shellPositionStyle} dir="rtl">
+    <div data-jacuzzi-a11y-fab="shell" style={shellPositionStyle} dir="ltr">
       <div data-jacuzzi-a11y-fab="inner">
         <div
           ref={fabTriggerRef}

@@ -1486,7 +1486,7 @@ export function InfoTabs() {
         <div className="tab-panel mt-6 overflow-visible rounded-2xl bg-transparent p-4 text-[0.96rem] leading-7 md:mt-5 md:p-5 md:text-base md:leading-8">
           {activeTab === "services" ? (
             <div role="tabpanel" id="panel-services" aria-labelledby="tab-services" className="flex flex-col gap-5">
-              <article className="overflow-hidden rounded-2xl border border-[#D4AF37]/28 bg-gradient-to-b from-cyan-500/18 via-white/[0.04] to-transparent p-5 shadow-[0_12px_36px_rgba(0,0,0,0.28)]">
+              <article className="overflow-hidden rounded-2xl bg-transparent p-5">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
                   <div className="relative flex h-20 w-full shrink-0 items-center justify-center sm:h-24 sm:w-36">
                     <Image
@@ -1509,7 +1509,7 @@ export function InfoTabs() {
                   </div>
                 </div>
               </article>
-              <article className="overflow-hidden rounded-2xl border border-[#D4AF37]/28 bg-gradient-to-b from-pink-500/18 via-white/[0.04] to-transparent p-5 shadow-[0_12px_36px_rgba(0,0,0,0.28)]">
+              <article className="overflow-hidden rounded-2xl bg-transparent p-5">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
                   <div className="relative flex h-20 w-full shrink-0 items-center justify-center sm:h-24 sm:w-36">
                     <Image
@@ -1547,7 +1547,7 @@ export function InfoTabs() {
               </p>
 
               <div className="grid gap-4 lg:grid-cols-2">
-                <article className="flex flex-col overflow-hidden rounded-2xl border border-cyan-400/25 bg-cyan-400/10 shadow-[0_10px_28px_rgba(0,0,0,0.2)]">
+                <article className="flex flex-col overflow-hidden rounded-2xl bg-transparent">
                   <div className="grid grid-cols-[auto_1fr] items-center gap-12 px-4 py-3 md:gap-14">
                     <Image
                       src="/images/van-mobile-transparent.png"
@@ -1565,8 +1565,8 @@ export function InfoTabs() {
                       </div>
                     </div>
                   </div>
-                  <div className="flex flex-col border-t border-cyan-300/15 pb-3">
-                    <div className="grid w-full grid-cols-[minmax(86px,1fr)_minmax(118px,1fr)_minmax(118px,1fr)] gap-x-4 border-b border-cyan-300/10 px-4 py-2.5 text-xs font-semibold">
+                  <div className="flex flex-col border-t border-cyan-300/8 pb-3">
+                    <div className="grid w-full grid-cols-[minmax(86px,1fr)_minmax(118px,1fr)_minmax(118px,1fr)] gap-x-4 border-b border-cyan-300/6 px-4 py-2.5 text-xs font-semibold">
                       <div className="text-right" style={PRICING_COLUMN_HEADER_STYLE}>
                         משקל
                       </div>
@@ -1577,12 +1577,10 @@ export function InfoTabs() {
                         מחיר לדילול
                       </div>
                     </div>
-                    {combinedPricingRows.map((row, index) => (
+                    {combinedPricingRows.map((row) => (
                       <div
                         key={`platinum-${row.size}`}
-                        className={`grid w-full grid-cols-[minmax(86px,1fr)_minmax(118px,1fr)_minmax(118px,1fr)] gap-x-4 border-b border-cyan-300/10 px-4 py-2 text-sm last:border-b-0 ${
-                          index % 2 === 1 ? "bg-white/5" : ""
-                        }`}
+                        className="grid w-full grid-cols-[minmax(86px,1fr)_minmax(118px,1fr)_minmax(118px,1fr)] gap-x-4 border-b border-cyan-300/6 px-4 py-2 text-sm last:border-b-0"
                       >
                         <div className="text-right whitespace-nowrap text-white">{row.size}</div>
                         <div className="text-right whitespace-nowrap font-semibold text-cyan-300">{row.haircutPlatinum}</div>
@@ -1592,7 +1590,7 @@ export function InfoTabs() {
                   </div>
                 </article>
 
-                <article className="flex flex-col overflow-hidden rounded-2xl border border-pink-400/25 bg-pink-500/10 shadow-[0_10px_28px_rgba(0,0,0,0.2)]">
+                <article className="flex flex-col overflow-hidden rounded-2xl bg-transparent">
                   <div className="grid grid-cols-[auto_1fr] items-center gap-12 px-4 py-3 md:gap-14">
                     <Image
                       src={truckPromoNobgSrc}
@@ -1610,8 +1608,8 @@ export function InfoTabs() {
                       </div>
                     </div>
                   </div>
-                  <div className="flex flex-col border-t border-pink-300/15 pb-3">
-                    <div className="grid w-full grid-cols-[minmax(86px,1fr)_minmax(118px,1fr)_minmax(118px,1fr)] gap-x-4 border-b border-pink-300/10 px-4 py-2.5 text-xs font-semibold">
+                  <div className="flex flex-col border-t border-pink-300/8 pb-3">
+                    <div className="grid w-full grid-cols-[minmax(86px,1fr)_minmax(118px,1fr)_minmax(118px,1fr)] gap-x-4 border-b border-pink-300/6 px-4 py-2.5 text-xs font-semibold">
                       <div className="text-right" style={PRICING_COLUMN_HEADER_STYLE}>
                         משקל
                       </div>
@@ -1622,12 +1620,10 @@ export function InfoTabs() {
                         מחיר לדילול
                       </div>
                     </div>
-                    {combinedPricingRows.map((row, index) => (
+                    {combinedPricingRows.map((row) => (
                       <div
                         key={`premium-${row.size}`}
-                        className={`grid w-full grid-cols-[minmax(86px,1fr)_minmax(118px,1fr)_minmax(118px,1fr)] gap-x-4 border-b border-pink-300/10 px-4 py-2 text-sm last:border-b-0 ${
-                          index % 2 === 1 ? "bg-white/5" : ""
-                        }`}
+                        className="grid w-full grid-cols-[minmax(86px,1fr)_minmax(118px,1fr)_minmax(118px,1fr)] gap-x-4 border-b border-pink-300/6 px-4 py-2 text-sm last:border-b-0"
                       >
                         <div className="text-right whitespace-nowrap text-white">{row.size}</div>
                         <div className="text-right whitespace-nowrap font-semibold text-pink-300">{row.haircutPremium}</div>
@@ -2689,9 +2685,9 @@ export function InfoTabs() {
                   )
                 : null}
 
-              <div className="rounded-2xl bg-white/5 p-4">
-                <p className="text-sm font-bold text-yellow-100">ניהול גלריה (מנהל בלבד)</p>
-                <div className="mt-3 flex flex-wrap items-center gap-2">
+              <div className="rounded-xl bg-white/[0.035] p-2.5 md:p-3">
+                <p className="text-xs font-semibold text-yellow-100/85">ניהול גלריה (מנהל בלבד)</p>
+                <div className="mt-2 flex flex-wrap items-center gap-1.5">
                   <input
                     type="password"
                     placeholder="קוד מנהל"
@@ -2699,19 +2695,19 @@ export function InfoTabs() {
                     onChange={(event) => {
                       setGalleryAdminCode(event.target.value);
                     }}
-                    className="rounded-xl bg-white px-3 py-2 text-sm text-neutral-900 outline-none ring-1 ring-white/25 placeholder:text-neutral-500 focus:ring-yellow-300/60"
+                    className="h-8 rounded-lg bg-white px-2.5 py-1 text-xs text-neutral-900 outline-none ring-1 ring-white/20 placeholder:text-neutral-500 focus:ring-yellow-300/50"
                     aria-label="קוד מנהל להעלאת תמונות לגלריה"
                   />
                   <button
                     type="button"
                     onClick={verifyGalleryAdminCode}
                     disabled={isVerifyingGalleryAdminCode}
-                    className="rounded-xl bg-yellow-300 px-4 py-2 text-xs font-extrabold text-brand-black disabled:opacity-60"
+                    className="h-8 rounded-lg bg-yellow-300 px-2.5 py-1 text-[11px] font-bold text-brand-black disabled:opacity-60"
                   >
                     {isVerifyingGalleryAdminCode ? "מאמת..." : "אמת קוד מנהל"}
                   </button>
                   {canManageGallery ? (
-                    <span className="rounded-lg bg-green-500/20 px-2 py-1 text-[11px] font-bold text-green-200">
+                    <span className="rounded-md bg-green-500/20 px-1.5 py-0.5 text-[10px] font-semibold text-green-200">
                       מצב מנהל פעיל
                     </span>
                   ) : null}
@@ -2728,7 +2724,7 @@ export function InfoTabs() {
                           // ignore
                         }
                       }}
-                      className="rounded-lg bg-red-500/20 px-2 py-1 text-[11px] font-bold text-red-200 hover:bg-red-500/30"
+                      className="rounded-md bg-red-500/20 px-1.5 py-0.5 text-[10px] font-semibold text-red-200 hover:bg-red-500/30"
                     >
                       יציאה ממצב מנהל
                     </button>
