@@ -1107,12 +1107,16 @@ export function InfoTabs() {
           );
 
           let { response, payload } = await runUploadAttempt(chunk);
-          if (!response.ok && chunk.length > 1 && shouldRetryAsSingleUpload(payload.error)) {
+          const chunkPayloadMalformed = shouldRetryAsSingleUpload(payload.error);
+          if (chunk.length > 1 && chunkPayloadMalformed) {
             setGalleryAdminMessage("זוהתה בעיית שרת בהעלאה מרובה, עובר להעלאה חכמה תמונה-תמונה...");
             for (let i = 0; i < chunk.length; i += 1) {
               const singleResult = await runUploadAttempt([chunk[i]]);
               response = singleResult.response;
               payload = singleResult.payload;
+              if (shouldRetryAsSingleUpload(payload.error)) {
+                throw new Error("השרת החזיר תשובה לא תקינה גם בהעלאה יחידה. נסה שוב בעוד רגע.");
+              }
               if (!response.ok) {
                 const serverErr =
                   typeof payload.error === "string" && payload.error.trim()
@@ -1133,6 +1137,9 @@ export function InfoTabs() {
               lastPayload = payload;
             }
             return;
+          }
+          if (chunkPayloadMalformed) {
+            throw new Error("השרת החזיר תשובה לא תקינה. נסה שוב בעוד רגע.");
           }
 
           if (!response.ok) {
