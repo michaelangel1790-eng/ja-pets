@@ -1064,18 +1064,41 @@ export function InfoTabs() {
         created?: GalleryItem[];
         ok?: boolean;
       } = {};
+      const shouldRetryAsSingleUpload = (errorText?: string): boolean => {
+        if (!errorText) return false;
+        return (
+          errorText.includes("תשובת השרת לא בפורמט") ||
+          errorText.includes("השרת החזיר תשובה שאינה תקינה") ||
+          errorText.includes("HTML במקום JSON")
+        );
+      };
 
       for (let chunkIndex = 0; chunkIndex < chunks.length; chunkIndex += 1) {
         const chunk = chunks[chunkIndex];
         await enqueueGalleryWrite(async () => {
-          const formData = new FormData();
-          formData.append("action", "upload");
-          if (uploadCaption) {
-            formData.append("caption", uploadCaption);
-          }
-          const captionsArr = chunk.map(() => uploadCaption);
-          formData.append("captions", JSON.stringify(captionsArr));
-          chunk.forEach((file) => formData.append("images", file));
+          const runUploadAttempt = async (attemptFiles: File[]) => {
+            const formData = new FormData();
+            formData.append("action", "upload");
+            if (uploadCaption) {
+              formData.append("caption", uploadCaption);
+            }
+            const captionsArr = attemptFiles.map(() => uploadCaption);
+            formData.append("captions", JSON.stringify(captionsArr));
+            attemptFiles.forEach((file) => formData.append("images", file));
+
+            const response = await postGalleryFormWithProgress(formData, sessionToken, (pct) => {
+              const overall = ((chunkIndex + pct / 100) / totalChunks) * 100;
+              setGalleryUploadProgress(Math.min(100, Math.round(overall)));
+            });
+            const payload = await safeParseResponseJson<{
+              error?: string;
+              message?: string;
+              items?: GalleryItem[];
+              created?: GalleryItem[];
+              ok?: boolean;
+            }>(response);
+            return { response, payload };
+          };
 
           setGalleryAdminMessage(
             totalChunks > 1
@@ -1083,18 +1106,34 @@ export function InfoTabs() {
               : "מעלה תמונות..."
           );
 
-          const response = await postGalleryFormWithProgress(formData, sessionToken, (pct) => {
-            const overall = ((chunkIndex + pct / 100) / totalChunks) * 100;
-            setGalleryUploadProgress(Math.min(100, Math.round(overall)));
-          });
-
-          const payload = await safeParseResponseJson<{
-            error?: string;
-            message?: string;
-            items?: GalleryItem[];
-            created?: GalleryItem[];
-            ok?: boolean;
-          }>(response);
+          let { response, payload } = await runUploadAttempt(chunk);
+          if (!response.ok && chunk.length > 1 && shouldRetryAsSingleUpload(payload.error)) {
+            setGalleryAdminMessage("זוהתה בעיית שרת בהעלאה מרובה, עובר להעלאה חכמה תמונה-תמונה...");
+            for (let i = 0; i < chunk.length; i += 1) {
+              const singleResult = await runUploadAttempt([chunk[i]]);
+              response = singleResult.response;
+              payload = singleResult.payload;
+              if (!response.ok) {
+                const serverErr =
+                  typeof payload.error === "string" && payload.error.trim()
+                    ? payload.error.trim()
+                    : "העלאת התמונות נכשלה";
+                throw new Error(serverErr);
+              }
+              if (Array.isArray(payload.items)) {
+                setGalleryImages(payload.items);
+              } else if (Array.isArray(payload.created) && payload.created.length > 0) {
+                setGalleryImages((prev) => sortGalleryItemsLikeApi([...payload.created!, ...prev]));
+              } else {
+                await loadGalleryItems(true, { silent: true });
+              }
+              setGalleryUploadProgress(
+                Math.min(100, Math.round(((chunkIndex + (i + 1) / chunk.length) / totalChunks) * 100))
+              );
+              lastPayload = payload;
+            }
+            return;
+          }
 
           if (!response.ok) {
             const serverErr =
@@ -1420,7 +1459,22 @@ export function InfoTabs() {
       aria-label="מידע מפורט על השירות"
       className="mx-auto mb-16 mt-8 max-w-6xl scroll-mt-24 px-3 md:mb-14 md:mt-4 md:px-6 lg:max-w-7xl lg:px-8 xl:max-w-[88rem]"
     >
-      <div className="section-shell">
+      <div className="section-shell relative overflow-hidden" data-active-tab={activeTab}>
+        <div aria-hidden className="pointer-events-none absolute inset-y-0 left-0 z-0 w-[17%] min-w-[44px] max-w-[140px]">
+          <span className="ambient-bubble ambient-bubble--sm ambient-bubble--glow" style={{ top: "10%", left: "8%", animationDelay: "-3s" }} />
+          <span className="ambient-bubble ambient-bubble--md" style={{ top: "42%", left: "20%", animationDelay: "-8s" }} />
+          <span className="ambient-bubble ambient-bubble--sm" style={{ top: "76%", left: "12%", animationDelay: "-13s" }} />
+          <span className="ambient-bubble ambient-bubble--sm ambient-bubble--vivid" style={{ top: "28%", left: "4%", animationDelay: "-17s" }} />
+          <span className="ambient-bubble ambient-bubble--md ambient-bubble--soft" style={{ top: "61%", left: "2%", animationDelay: "-22s" }} />
+        </div>
+        <div aria-hidden className="pointer-events-none absolute inset-y-0 right-0 z-0 w-[17%] min-w-[44px] max-w-[140px]">
+          <span className="ambient-bubble ambient-bubble--md ambient-bubble--glow" style={{ top: "16%", right: "14%", animationDelay: "-6s" }} />
+          <span className="ambient-bubble ambient-bubble--sm" style={{ top: "54%", right: "22%", animationDelay: "-11s" }} />
+          <span className="ambient-bubble ambient-bubble--lg" style={{ top: "80%", right: "8%", animationDelay: "-16s" }} />
+          <span className="ambient-bubble ambient-bubble--sm ambient-bubble--vivid" style={{ top: "34%", right: "4%", animationDelay: "-20s" }} />
+          <span className="ambient-bubble ambient-bubble--md ambient-bubble--soft" style={{ top: "68%", right: "2%", animationDelay: "-25s" }} />
+        </div>
+        <div className="relative z-10">
         <h2 className="section-title">כל מה שצריך לדעת, במקום אחד</h2>
         <p className="section-subtitle">
           בחרו לשונית וקבלו מידע ברור על השירותים, המחירים, המיקומים ודרכי יצירת הקשר.
@@ -3028,6 +3082,7 @@ export function InfoTabs() {
               </a>
             </div>
           ) : null}
+        </div>
         </div>
       </div>
     </section>

@@ -32,10 +32,6 @@ body {
     radial-gradient(circle at 88% 10%, rgba(233, 30, 143, 0.26) 0%, transparent 28%),
     radial-gradient(circle at 24% 72%, rgba(84, 220, 255, 0.18) 0%, transparent 22%),
     radial-gradient(circle at 78% 74%, rgba(255, 64, 169, 0.16) 0%, transparent 24%),
-    radial-gradient(circle at 8% 84%, rgba(255, 255, 255, 0.12) 0 1.5%, transparent 2%),
-    radial-gradient(circle at 18% 88%, rgba(255, 255, 255, 0.1) 0 1.2%, transparent 1.8%),
-    radial-gradient(circle at 84% 82%, rgba(255, 255, 255, 0.12) 0 1.7%, transparent 2.2%),
-    radial-gradient(circle at 74% 90%, rgba(255, 255, 255, 0.1) 0 1.3%, transparent 1.9%),
     linear-gradient(180deg, #090d17 0%, #121a2b 52%, #0b1321 100%);
   color: #f4f7fb;
   -webkit-font-smoothing: antialiased;
@@ -475,10 +471,114 @@ a.nav-link:active {
 
 .bubble {
   position: absolute;
+  width: 64px;
+  height: 64px;
   border-radius: 9999px;
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0.05));
-  animation: float-bubble 8s ease-in-out infinite;
+  border: 1px solid rgba(180, 231, 255, 0.24);
+  background:
+    radial-gradient(circle at 30% 28%, rgba(216, 245, 255, 0.22) 0%, rgba(133, 208, 255, 0.08) 38%, rgba(20, 38, 62, 0.02) 100%),
+    radial-gradient(circle at 70% 78%, rgba(255, 137, 214, 0.08), rgba(255, 137, 214, 0));
+  opacity: 0.3;
+  animation: float-bubble 18s cubic-bezier(0.37, 0, 0.2, 1) infinite;
+  will-change: transform;
+  filter: blur(0.2px);
+}
+
+.bubble--sm {
+  width: 44px;
+  height: 44px;
+  opacity: 0.24;
+  animation-duration: 14s;
+}
+
+.bubble--md {
+  width: 72px;
+  height: 72px;
+  opacity: 0.3;
+  animation-duration: 19s;
+}
+
+.bubble--lg {
+  width: 108px;
+  height: 108px;
+  opacity: 0.34;
+  animation-duration: 24s;
+}
+
+.bubble--soft {
+  filter: blur(0.8px);
+  opacity: 0.22;
+}
+
+.bubble--glow {
+  box-shadow: 0 0 22px rgba(118, 218, 255, 0.22), 0 0 42px rgba(255, 131, 206, 0.12);
+}
+
+.ambient-bubble {
+  position: absolute;
+  border-radius: 9999px;
+  border: 1px solid rgba(173, 228, 255, 0.34);
+  background:
+    radial-gradient(circle at 30% 25%, rgba(214, 244, 255, 0.38), rgba(95, 168, 226, 0.12) 62%),
+    radial-gradient(circle at 72% 74%, rgba(255, 128, 204, 0.18), rgba(255, 128, 204, 0));
+  opacity: 0.52;
+  animation: float-bubble 17s cubic-bezier(0.28, 0.06, 0.2, 1) infinite;
+  filter: blur(0.15px);
+  mix-blend-mode: screen;
+}
+
+/* Per-tab ambient palette: different vibe without covering text. */
+.section-shell[data-active-tab="pricing"] .ambient-bubble {
+  border-color: rgba(255, 178, 222, 0.4);
+  background:
+    radial-gradient(circle at 30% 25%, rgba(255, 221, 170, 0.42), rgba(255, 121, 198, 0.12) 62%),
+    radial-gradient(circle at 72% 74%, rgba(255, 238, 173, 0.2), rgba(255, 238, 173, 0));
+}
+
+.section-shell[data-active-tab="gallery"] .ambient-bubble {
+  border-color: rgba(165, 245, 227, 0.38);
+  background:
+    radial-gradient(circle at 30% 25%, rgba(205, 255, 242, 0.42), rgba(83, 209, 185, 0.11) 62%),
+    radial-gradient(circle at 72% 74%, rgba(119, 202, 255, 0.18), rgba(119, 202, 255, 0));
+}
+
+.section-shell[data-active-tab="faq"] .ambient-bubble,
+.section-shell[data-active-tab="contact"] .ambient-bubble {
+  border-color: rgba(186, 212, 255, 0.36);
+  background:
+    radial-gradient(circle at 30% 25%, rgba(223, 235, 255, 0.38), rgba(119, 156, 231, 0.11) 62%),
+    radial-gradient(circle at 72% 74%, rgba(223, 151, 255, 0.16), rgba(223, 151, 255, 0));
+}
+
+.ambient-bubble--sm {
+  width: 40px;
+  height: 40px;
+  animation-duration: 13s;
+}
+
+.ambient-bubble--md {
+  width: 66px;
+  height: 66px;
+  animation-duration: 17s;
+}
+
+.ambient-bubble--lg {
+  width: 96px;
+  height: 96px;
+  animation-duration: 22s;
+}
+
+.ambient-bubble--glow {
+  box-shadow: 0 0 24px rgba(112, 212, 255, 0.45), 0 0 44px rgba(255, 130, 206, 0.28);
+}
+
+.ambient-bubble--vivid {
+  opacity: 0.62;
+}
+
+.ambient-bubble--soft {
+  opacity: 0.36;
+  filter: blur(1px);
 }
 
 .cta-glow {
@@ -488,16 +588,36 @@ a.nav-link:active {
 
 @keyframes float-bubble {
   0% {
-    transform: translateY(0px);
-    opacity: 0.75;
+    transform: translate3d(0, 0, 0) scale(0.98) rotate(0deg);
   }
-  50% {
-    transform: translateY(-10px);
-    opacity: 1;
+  18% {
+    transform: translate3d(9px, -9px, 0) scale(1.015) rotate(1deg);
+  }
+  43% {
+    transform: translate3d(-7px, -19px, 0) scale(1.03) rotate(-1.5deg);
+  }
+  67% {
+    transform: translate3d(5px, -29px, 0) scale(1) rotate(0.8deg);
+  }
+  86% {
+    transform: translate3d(-4px, -41px, 0) scale(0.985) rotate(-0.7deg);
   }
   100% {
-    transform: translateY(0px);
-    opacity: 0.75;
+    transform: translate3d(1px, -52px, 0) scale(0.97) rotate(0deg);
+  }
+}
+
+@media (max-width: 767px) {
+  .bubble {
+    opacity: 0.2;
+  }
+
+  .ambient-bubble {
+    opacity: 0.44;
+  }
+
+  .ambient-bubble--vivid {
+    opacity: 0.5;
   }
 }
 
