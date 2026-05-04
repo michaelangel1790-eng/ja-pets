@@ -77,6 +77,12 @@ function applyImageAltCaptions(root: HTMLElement) {
     cap.setAttribute(ALT_CAPTION_MARK, "1");
     cap.setAttribute("role", "note");
     cap.textContent = alt.trim();
+    const galleryTile = img.closest("figure.gallery-tile");
+    if (galleryTile) {
+      cap.classList.add("jacuzzi-a11y-alt-caption--overlay");
+      galleryTile.appendChild(cap);
+      return;
+    }
     img.insertAdjacentElement("afterend", cap);
   });
 }

@@ -319,6 +319,22 @@ html.a11y-cursor-large body * {
   word-break: break-word;
 }
 
+/* Gallery-specific placement for a11y alt captions (above thumbnails, never hidden under fill image layers). */
+.jacuzzi-a11y-alt-caption--overlay {
+  position: absolute;
+  z-index: 45;
+  left: 0.4rem;
+  right: 0.4rem;
+  top: 0.4rem;
+  margin-top: 0 !important;
+  border-radius: 0.5rem;
+  background: rgba(8, 12, 20, 0.86);
+  color: #fef9c3;
+  border: 1px solid rgba(253, 224, 71, 0.35);
+  line-height: 1.35;
+  pointer-events: none;
+}
+
 footer[aria-label*="קישורים משפטיים"] a {
   color: #d4af37 !important;
   text-decoration: none !important;
@@ -578,7 +594,20 @@ a.nav-link:active {
 }
 
 /* Gallery hard reset: remove browser/default frames everywhere (desktop + mobile) */
-.gallery-tile,
+.gallery-tile {
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+  -webkit-user-drag: none;
+  user-drag: none;
+  user-select: none;
+}
+
+/* Thumbnail frame in gallery grid: transparent so site background shows through */
+figure.gallery-tile {
+  background: transparent !important;
+}
+
 .gallery-tile-button,
 .gallery-tile-button > span,
 .gallery-tile-button > span > img,

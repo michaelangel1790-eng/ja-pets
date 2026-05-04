@@ -2207,20 +2207,9 @@ export function InfoTabs() {
                   const isLastImage = currentDisplayIndex === featuredFirstGalleryItems.length - 1;
                   const priorityThumb = currentDisplayIndex >= 0 && currentDisplayIndex < 8;
                   const thumbReady = Boolean(galleryThumbLoaded[item.id]);
-                  const tw = item.width ?? 1200;
-                  const th = item.height ?? 800;
-                  const maxThumbSide = 1200;
-                  const thumbW =
-                    tw >= th
-                      ? Math.min(tw, maxThumbSide)
-                      : Math.max(1, Math.round((tw / th) * Math.min(th, maxThumbSide)));
-                  const thumbH =
-                    tw >= th
-                      ? Math.max(1, Math.round((th / tw) * Math.min(tw, maxThumbSide)))
-                      : Math.min(th, maxThumbSide);
                   return (
                   <div key={item.id} className="space-y-1">
-                  <figure className="gallery-tile group relative aspect-square overflow-hidden border-0 bg-transparent outline-none shadow-none">
+                  <figure className="gallery-tile group relative aspect-square overflow-hidden rounded-xl border-0 outline-none shadow-none">
                     <button
                       type="button"
                       aria-label={`פתיחת תמונה מוגדלת: ${item.treatmentName}`}
@@ -2246,13 +2235,12 @@ export function InfoTabs() {
                       <Image
                         src={item.image}
                         alt={`${item.treatmentName} - ${item.dogType}`}
-                        width={thumbW}
-                        height={thumbH}
+                        fill
                         unoptimized
                         sizes="(max-width: 768px) 50vw, 25vw"
                         priority={priorityThumb}
                         loading={priorityThumb ? "eager" : "lazy"}
-                        className={`gallery-tile-image relative z-[1] h-full w-full border-0 bg-transparent object-cover object-center outline-none ring-0 shadow-none transition-transform transition-opacity duration-300 ease-out md:group-hover:scale-[1.04] group-active:scale-[1.02] ${thumbReady ? "opacity-100" : "opacity-0"}`}
+                        className={`gallery-tile-image relative z-[1] h-full w-full border-0 bg-transparent object-contain object-center outline-none ring-0 shadow-none transition-opacity duration-300 ease-out ${thumbReady ? "opacity-100" : "opacity-0"}`}
                         onLoadingComplete={() =>
                           setGalleryThumbLoaded((prev) => ({ ...prev, [item.id]: true }))
                         }
@@ -2260,10 +2248,13 @@ export function InfoTabs() {
                         onDragStart={preventImageSave}
                       />
                     </button>
-                    <figcaption className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-2 text-right">
-                      <p className="truncate text-[11px] font-bold text-white">{item.treatmentName}</p>
-                      {item.caption ? <p className="mt-1 inline-flex rounded-full bg-black/55 px-2 py-0.5 text-[10px] text-yellow-100">{item.caption}</p> : null}
-                    </figcaption>
+                    {item.caption ? (
+                      <figcaption className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-2 text-right">
+                        <p className="mt-1 inline-flex rounded-full bg-black/55 px-2 py-0.5 text-[10px] text-yellow-100">
+                          {item.caption}
+                        </p>
+                      </figcaption>
+                    ) : null}
                     {canManageGallery ? (
                       <div className="absolute right-1 top-1 z-[35] flex items-center gap-1">
                         <button
