@@ -4,9 +4,6 @@ export const whatsappNumber = "972505501662";
 export const whatsappLegalConsentLine =
   "מאשר/ת תנאי שימוש, פרטיות וביטולים כפי שבאתר JACUZZI.";
 
-/** שורה קצרה על כפתור הוואטסאפ הצף בלבד */
-export const whatsappFabConsentShort = "לחיצה = הסכמה לתנאים ולמדיניות באתר";
-
 /** תבנית ראשית — קצרה, קל לעריכה בוואטסאפ */
 export const whatsappMessage = `היי,
 
