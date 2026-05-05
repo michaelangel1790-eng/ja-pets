@@ -72,7 +72,7 @@ export function LeadDetailsSection() {
     const whatsappLeadNumber = "972505501662";
     const message = `היי JACUZZI,
 
-פרטים מהאתר — תיאום טיפוח.
+פרטים מהאתר — תיאום טיפול.
 
 פרטי לקוח
 שם מלא: ${fullName.trim()}
@@ -80,15 +80,17 @@ export function LeadDetailsSection() {
 כתובת: ${streetAddress.trim() || "—"}
 אזור מגורים: ${area.trim()}
 
-פרטי הכלב
+פרטי הכלב/ה
 גזע: ${dogType.trim() || "—"}
 גיל (בערך): ${dogAge.trim() || "—"}
 משקל משוער: ${dogWeight.trim() || "—"}
-שם הכלב: ${dogName.trim() || "—"}
+שם הכלב/ה: ${dogName.trim() || "—"}
 
 שירות: ${service}
 
 הערות: ${notes.trim() || "—"}
+
+עדיף לצרף תמונה / סרטון של הכלב/ה בוואטסאפ לקבלת הצעת מחיר מדויקת.
 
 לפי הסימון בטופס, האישורים הנדרשים אושרו לפני השליחה.
 
@@ -114,7 +116,7 @@ ${whatsappLegalConsentLine}`;
           noValidate
         >
           <p className="text-sm font-bold text-jacuzzi-gold">
-            השאירו פרטים — נחזור עם מענה מהיר בוואטסאפ. נא למלא את פרטי הלקוח ואת פרטי הכלב.
+            השאירו פרטים — נחזור עם מענה מהיר בוואטסאפ. נא למלא את פרטי הלקוח ואת פרטי הכלב/ה.
           </p>
           <div className="mt-3 grid gap-3 md:grid-cols-2">
             <h3 className="col-span-full text-sm font-extrabold text-cyan-200/95">פרטי לקוח</h3>
@@ -181,7 +183,7 @@ ${whatsappLegalConsentLine}`;
                 aria-invalid={formError ? missingRequiredFields && !area.trim() : undefined}
               />
             </div>
-            <h3 className="col-span-full mt-1 text-sm font-extrabold text-cyan-200/95">פרטי הכלב</h3>
+            <h3 className="col-span-full mt-1 text-sm font-extrabold text-cyan-200/95">פרטי הכלב/ה</h3>
             <div className="space-y-1">
               <label htmlFor="lead-dog-type" className="text-xs font-bold text-jacuzzi-gold">
                 גזע
@@ -223,7 +225,7 @@ ${whatsappLegalConsentLine}`;
             </div>
             <div className="space-y-1">
               <label htmlFor="lead-dog-name" className="text-xs font-bold text-jacuzzi-gold">
-                שם הכלב
+                שם הכלב/ה
               </label>
               <input
                 id="lead-dog-name"

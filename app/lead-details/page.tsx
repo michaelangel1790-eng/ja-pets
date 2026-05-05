@@ -4,7 +4,7 @@ import { PageWithChrome } from "@/components/page-with-chrome";
 
 export const metadata: Metadata = {
   title: "השארת פרטים | JACUZZI",
-  description: "השארת פרטים לתיאום שירות טיפוח כלבים ב-JACUZZI."
+  description: "השארת פרטים לתיאום טיפול כלבים ב-JACUZZI."
 };
 
 export default function LeadDetailsPage() {
