@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ExternalLink } from "@/components/external-link";
+import { whatsappLegalConsentLine } from "@/data/site-data";
 
 const LEAD_ERROR_ID = "lead-form-error-summary";
 
@@ -49,19 +50,23 @@ export function LeadDetailsSection() {
 
 פרטים מהאתר — תיאום טיפוח.
 
-▸ שם: ${fullName.trim()}
-▸ טלפון: ${phone.trim()}
-▸ אזור: ${area.trim()}
+שם מלא: ${fullName.trim()}
+טלפון: ${phone.trim()}
+כתובת:
+אזור מגורים: ${area.trim()}
 
-▸ הכלב — גזע: ${dogType.trim() || "—"}
-▸ משקל: ${dogWeight.trim() || "—"}
-▸ שירות: ${service}
+כלב (גזע): ${dogType.trim() || "—"}
+משקל: ${dogWeight.trim() || "—"}
+שירות: ${service}
 
-▸ הערות: ${notes.trim() || "—"}
+הערות: ${notes.trim() || "—"}
 
-(אישורים נדרשים באתר סומנו לפני השליחה)
+אישורים נדרשים באתר סומנו לפני השליחה.
 
-תודה!`;
+תודה!
+
+—
+${whatsappLegalConsentLine}`;
 
     const whatsappUrl = `https://wa.me/${whatsappLeadNumber}?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, "_blank", "noopener,noreferrer");
