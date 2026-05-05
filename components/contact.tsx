@@ -1,4 +1,5 @@
-import { phoneNumbers, whatsappMessage, whatsappNumber } from "@/data/site-data";
+import { WhatsAppExternalLink } from "@/components/external-link";
+import { phoneNumbers, whatsappMessage } from "@/data/site-data";
 
 export function Contact() {
   return (
@@ -26,14 +27,12 @@ export function Contact() {
                 </a>
               </li>
             </ul>
-            <a
-              href={`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`}
-              target="_blank"
-              rel="noreferrer"
+            <WhatsAppExternalLink
+              message={whatsappMessage}
               className="mt-5 inline-flex rounded-full border border-[#d4af37]/45 bg-gradient-to-b from-[#e8cf82] to-[#c9a227] px-6 py-3 font-extrabold text-brand-black shadow-[0_6px_18px_rgba(0,0,0,0.35)] hover:brightness-110"
             >
               מעבר לוואטסאפ
-            </a>
+            </WhatsAppExternalLink>
           </div>
 
           <form className="premium-card space-y-3 p-5">

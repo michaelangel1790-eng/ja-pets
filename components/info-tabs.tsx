@@ -13,12 +13,12 @@ import {
   testimonials,
   whatsappMessage,
   whatsappMessageGallery,
-  whatsappMessageTruckLocation,
-  whatsappNumber
+  whatsappMessageTruckLocation
 } from "@/data/site-data";
 import { safeParseResponseJson } from "@/lib/safe-response-json";
 import { sortGalleryItemsLikeApi } from "@/lib/gallery-sort";
 import { GALLERY_ALLOWED_CAPTIONS } from "@/lib/gallery-captions";
+import { ExternalLink, WhatsAppExternalLink } from "@/components/external-link";
 
 /** העלאה סדרתית יציבה (תמונה-תמונה אוטומטית) כדי למנוע כשלים בהעלאה מרובה. */
 const GALLERY_UPLOAD_CHUNK_SIZE = 1;
@@ -1716,10 +1716,8 @@ export function InfoTabs() {
                   </article>
                 ))}
               </div>
-              <a
-                href={`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`}
-                target="_blank"
-                rel="noreferrer"
+              <WhatsAppExternalLink
+                message={whatsappMessage}
                 className="!no-underline inline-flex min-h-12 items-center justify-center rounded-xl bg-transparent px-6 py-3 text-center text-sm font-extrabold !text-yellow-200 visited:!text-yellow-200 hover:!text-yellow-100 focus:!text-yellow-100 active:!text-yellow-100"
                 style={{
                   WebkitTapHighlightColor: "transparent",
@@ -1729,7 +1727,7 @@ export function InfoTabs() {
                 }}
               >
                 שליחת הודעה לוואטסאפ לקביעת תור
-              </a>
+              </WhatsAppExternalLink>
               <p className="text-xs text-neutral-200">ללקויי שמיעה: ניתן לבצע תיאום מלא גם בוואטסאפ, ללא שיחה טלפונית.</p>
             </div>
 
@@ -1742,14 +1740,12 @@ export function InfoTabs() {
                   >
                     חייג מהיר
                   </a>
-                  <a
-                    href={`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`}
-                    target="_blank"
-                    rel="noreferrer"
+                  <WhatsAppExternalLink
+                    message={whatsappMessage}
                     className="inline-flex min-h-10 items-center justify-center rounded-xl border border-[#D4AF37]/40 bg-[#D4AF37]/12 px-4 py-2 text-sm font-extrabold text-[#F1D27A] shadow-[0_8px_18px_rgba(0,0,0,0.28)] transition hover:-translate-y-[1px] hover:bg-[#D4AF37]/20"
                   >
                     קביעת תור בוואטסאפ
-                  </a>
+                  </WhatsAppExternalLink>
                 </div>
               </div>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -1947,14 +1943,12 @@ export function InfoTabs() {
                   >
                     חייג מהיר
                   </a>
-                  <a
-                    href={`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`}
-                    target="_blank"
-                    rel="noreferrer"
+                  <WhatsAppExternalLink
+                    message={whatsappMessage}
                     className="inline-flex min-h-10 items-center justify-center rounded-xl border border-[#D4AF37]/40 bg-[#D4AF37]/12 px-4 py-2 text-sm font-extrabold text-[#F1D27A] shadow-[0_8px_18px_rgba(0,0,0,0.28)] transition hover:-translate-y-[1px] hover:bg-[#D4AF37]/20"
                   >
                     קביעת תור בוואטסאפ
-                  </a>
+                  </WhatsAppExternalLink>
                 </div>
               </div>
 
@@ -2132,32 +2126,26 @@ export function InfoTabs() {
                   />
                   <label htmlFor="review-privacy-approve" className="cursor-pointer">
                     קראתי ואני מאשר/ת את{" "}
-                    <a
+                    <ExternalLink
                       href="/privacy-policy"
-                      target="_blank"
-                      rel="noreferrer"
                       className="font-bold text-cyan-200 underline underline-offset-2 hover:text-cyan-100"
                     >
                       מדיניות הפרטיות
-                    </a>
+                    </ExternalLink>
                     ,{" "}
-                    <a
+                    <ExternalLink
                       href="/terms-of-use"
-                      target="_blank"
-                      rel="noreferrer"
                       className="font-bold text-cyan-200 underline underline-offset-2 hover:text-cyan-100"
                     >
                       תנאי השימוש
-                    </a>{" "}
+                    </ExternalLink>{" "}
                     ו{" "}
-                    <a
+                    <ExternalLink
                       href="/cancellation-policy"
-                      target="_blank"
-                      rel="noreferrer"
                       className="font-bold text-cyan-200 underline underline-offset-2 hover:text-cyan-100"
                     >
                       מדיניות הביטולים
-                    </a>
+                    </ExternalLink>
                     .
                   </label>
                 </div>
@@ -2189,15 +2177,21 @@ export function InfoTabs() {
 
               <div className="rounded-2xl bg-transparent p-4">
                 <p className="text-sm font-bold text-yellow-100">ניהול המלצות (מנהל בלבד)</p>
-                <div className="mt-3 flex flex-wrap items-center gap-2">
-                  <input
-                    type="password"
-                    placeholder="קוד מנהל"
-                    value={adminCode}
-                    onChange={(event) => setAdminCode(event.target.value)}
-                    className="rounded-xl bg-transparent px-3 py-2 text-sm text-white outline-none ring-1 ring-white/25 placeholder:text-neutral-300 focus:ring-yellow-300/60"
-                    aria-label="קוד מנהל לצפייה בביקורות ממתינות"
-                  />
+                <div className="mt-3 flex flex-wrap items-end gap-2">
+                  <div className="flex min-w-[12rem] flex-col gap-1">
+                    <label htmlFor="testimonials-admin-code" className="text-xs font-bold text-yellow-100">
+                      קוד מנהל לצפייה בביקורות ממתינות
+                    </label>
+                    <input
+                      id="testimonials-admin-code"
+                      type="password"
+                      placeholder="קוד מנהל"
+                      autoComplete="off"
+                      value={adminCode}
+                      onChange={(event) => setAdminCode(event.target.value)}
+                      className="rounded-xl bg-transparent px-3 py-2 text-sm text-white outline-none ring-1 ring-white/25 placeholder:text-neutral-300 focus:ring-yellow-300/60"
+                    />
+                  </div>
                   <button
                     type="button"
                     onClick={loadPendingReviews}
@@ -2256,14 +2250,12 @@ export function InfoTabs() {
               </div>
               <div className="text-xs text-neutral-200">
                 <span>רוצים גם תוצאה כזו? </span>
-                <a
-                  href={`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessageGallery)}`}
-                  target="_blank"
-                  rel="noreferrer"
+                <WhatsAppExternalLink
+                  message={whatsappMessageGallery}
                   className="mx-1 inline-flex items-center bg-transparent px-0 py-0 text-xs font-extrabold text-[#D4AF37] underline decoration-[#D4AF37]/70 underline-offset-2 transition hover:text-[#E7C870] hover:decoration-[#E7C870] active:scale-[0.98]"
                 >
                   שלחו לנו הודעה בוואטסאפ
-                </a>
+                </WhatsAppExternalLink>
                 <span>עם פרטים ותמונה של הכלב, ונחזור אליכם עם התאמה והצעת מחיר.</span>
               </div>
               <p className="text-xs text-neutral-200">
@@ -2747,14 +2739,12 @@ export function InfoTabs() {
                           >
                             איפוס זום
                           </button>
-                          <a
-                            href={`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessageGallery)}`}
-                            target="_blank"
-                            rel="noreferrer"
+                          <WhatsAppExternalLink
+                            message={whatsappMessageGallery}
                             className="rounded-xl border border-[#D4AF37]/60 bg-[#D4AF37]/15 px-3 py-1 text-xs font-bold text-[#D4AF37] transition hover:bg-[#D4AF37]/25"
                           >
                             רוצה תוצאה כזו? דברו איתנו
-                          </a>
+                          </WhatsAppExternalLink>
                         </div>
                         </>
                       </div>
@@ -2765,17 +2755,23 @@ export function InfoTabs() {
 
               <div className="rounded-xl bg-white/[0.035] p-2.5 md:p-3">
                 <p className="text-xs font-semibold text-yellow-100/85">ניהול גלריה (מנהל בלבד)</p>
-                <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                  <input
-                    type="password"
-                    placeholder="קוד מנהל"
-                    value={galleryAdminCode}
-                    onChange={(event) => {
-                      setGalleryAdminCode(event.target.value);
-                    }}
-                    className="h-8 rounded-lg bg-white px-2.5 py-1 text-xs text-neutral-900 outline-none ring-1 ring-white/20 placeholder:text-neutral-500 focus:ring-yellow-300/50"
-                    aria-label="קוד מנהל להעלאת תמונות לגלריה"
-                  />
+                <div className="mt-2 flex flex-wrap items-end gap-2">
+                  <div className="flex min-w-[10rem] flex-col gap-1">
+                    <label htmlFor="gallery-admin-code" className="text-[11px] font-semibold text-yellow-100/85">
+                      קוד מנהל להעלאת תמונות
+                    </label>
+                    <input
+                      id="gallery-admin-code"
+                      type="password"
+                      placeholder="קוד מנהל"
+                      autoComplete="off"
+                      value={galleryAdminCode}
+                      onChange={(event) => {
+                        setGalleryAdminCode(event.target.value);
+                      }}
+                      className="h-8 rounded-lg bg-white px-2.5 py-1 text-xs text-neutral-900 outline-none ring-1 ring-white/20 placeholder:text-neutral-500 focus:ring-yellow-300/50"
+                    />
+                  </div>
                   <button
                     type="button"
                     onClick={verifyGalleryAdminCode}
@@ -2900,14 +2896,12 @@ export function InfoTabs() {
                     <div className="mt-3 flex flex-wrap gap-2">
                       {location.address ? (
                         <>
-                          <a
+                          <ExternalLink
                             href={`https://www.waze.com/ul?q=${encodeURIComponent(location.address)}&navigate=yes`}
-                            target="_blank"
-                            rel="noreferrer"
                             className="inline-flex min-h-9 min-w-[92px] flex-1 items-center justify-center rounded-lg bg-[#D4AF37]/22 px-2 py-1.5 text-center text-[11px] font-bold text-[#F5E6A8] hover:bg-[#D4AF37]/35"
                           >
                             נווט בווייז
-                          </a>
+                          </ExternalLink>
                           <button
                             type="button"
                             onClick={() => copyAddress(location.address || "")}
@@ -2924,26 +2918,30 @@ export function InfoTabs() {
 
               <div className="rounded-2xl bg-white/5 p-4">
                 <p className="text-sm font-bold text-yellow-100">מיקום המשאית מתעדכן אחת לחודש עבור החודש הבא. מוזמנים להתעדכן כאן באתר או לשלוח לנו הודעה בוואטסאפ.</p>
-                <a
-                  href={`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessageTruckLocation)}`}
-                  target="_blank"
-                  rel="noreferrer"
+                <WhatsAppExternalLink
+                  message={whatsappMessageTruckLocation}
                   className="mt-3 inline-flex min-h-10 items-center justify-center rounded-xl bg-[#D4AF37]/85 px-4 py-2 text-xs font-extrabold text-brand-black no-underline hover:bg-[#D4AF37]"
                 >
                   שליחת הודעה בוואטסאפ
-                </a>
-                <div className="mt-3 flex flex-wrap items-center gap-2">
-                  <input
-                    type="password"
-                    placeholder="קוד מנהל"
-                    value={locationAdminCode}
-                    onChange={(event) => {
-                      setLocationAdminCode(event.target.value);
-                      setIsLocationAdminAuthorized(false);
-                    }}
-                    className="rounded-xl bg-white px-3 py-2 text-sm text-neutral-900 outline-none ring-1 ring-white/25 placeholder:text-neutral-500 focus:ring-yellow-300/60"
-                    aria-label="קוד מנהל לעדכון מיקום משאית"
-                  />
+                </WhatsAppExternalLink>
+                <div className="mt-3 flex flex-wrap items-end gap-2">
+                  <div className="flex min-w-[12rem] flex-col gap-1">
+                    <label htmlFor="location-admin-code" className="text-xs font-semibold text-yellow-100">
+                      קוד מנהל לעדכון מיקום המשאית
+                    </label>
+                    <input
+                      id="location-admin-code"
+                      type="password"
+                      placeholder="קוד מנהל"
+                      autoComplete="off"
+                      value={locationAdminCode}
+                      onChange={(event) => {
+                        setLocationAdminCode(event.target.value);
+                        setIsLocationAdminAuthorized(false);
+                      }}
+                      className="rounded-xl bg-white px-3 py-2 text-sm text-neutral-900 outline-none ring-1 ring-white/25 placeholder:text-neutral-500 focus:ring-yellow-300/60"
+                    />
+                  </div>
                   <button
                     type="button"
                     onClick={verifyLocationAdminCode}
@@ -3045,14 +3043,12 @@ export function InfoTabs() {
                   >
                     חייג מהיר
                   </a>
-                  <a
-                    href={`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`}
-                    target="_blank"
-                    rel="noreferrer"
+                  <WhatsAppExternalLink
+                    message={whatsappMessage}
                     className="inline-flex min-h-10 items-center justify-center rounded-xl border border-[#D4AF37]/45 bg-[#D4AF37]/14 px-4 py-2 text-sm font-extrabold text-[#F1D27A] shadow-[0_8px_18px_rgba(0,0,0,0.28)] transition hover:bg-[#D4AF37]/22"
                   >
                     קביעת תור בוואטסאפ
-                  </a>
+                  </WhatsAppExternalLink>
                 </div>
               </div>
               <div className="space-y-2">
@@ -3085,10 +3081,8 @@ export function InfoTabs() {
                   ללקויי שמיעה: ניתן לבצע תיאום מלא בוואטסאפ ללא צורך בשיחה.
                 </p>
               </div>
-              <a
-                href={`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`}
-                target="_blank"
-                rel="noreferrer"
+              <WhatsAppExternalLink
+                message={whatsappMessage}
                 className="!no-underline flex min-h-[10rem] flex-col items-center justify-center gap-2 rounded-2xl border border-[#D4AF37]/35 bg-gradient-to-br from-[#D4AF37]/18 to-black/40 px-5 py-6 text-center shadow-[0_14px_36px_rgba(0,0,0,0.35)] transition hover:border-[#D4AF37]/50 hover:from-[#D4AF37]/26"
                 style={{ color: "#fde68a", WebkitTextFillColor: "#fde68a", textDecoration: "none" }}
               >
@@ -3096,7 +3090,7 @@ export function InfoTabs() {
                 <span className="max-w-[16rem] text-base font-extrabold !text-yellow-100 visited:!text-yellow-100 hover:!text-yellow-50">
                   שלחו פרטים ותמונה של הכלב לקביעת תור
                 </span>
-              </a>
+              </WhatsAppExternalLink>
             </div>
         </div>
         </div>

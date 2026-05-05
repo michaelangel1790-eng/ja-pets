@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { ExternalLink } from "@/components/external-link";
 import { whatsappLegalConsentLine } from "@/data/site-data";
 
 const LEAD_ERROR_ID = "lead-form-error-summary";
@@ -205,35 +206,29 @@ ${whatsappLegalConsentLine}`;
                 />
                 <label htmlFor="lead-privacy" className="cursor-pointer">
                   קראתי ואני מאשר/ת את{" "}
-                  <a
+                  <ExternalLink
                     href="/privacy-policy"
-                    target="_blank"
-                    rel="noreferrer"
                     className="!no-underline bg-transparent font-bold !text-jacuzzi-gold visited:!text-jacuzzi-gold hover:!text-jacuzzi-cream"
                     style={{ color: "#fde68a", WebkitTextFillColor: "#fde68a", backgroundColor: "transparent", textDecoration: "none" }}
                   >
                     מדיניות הפרטיות
-                  </a>
+                  </ExternalLink>
                   ,{" "}
-                  <a
+                  <ExternalLink
                     href="/terms-of-use"
-                    target="_blank"
-                    rel="noreferrer"
                     className="!no-underline bg-transparent font-bold !text-jacuzzi-gold visited:!text-jacuzzi-gold hover:!text-jacuzzi-cream"
                     style={{ color: "#fde68a", WebkitTextFillColor: "#fde68a", backgroundColor: "transparent", textDecoration: "none" }}
                   >
                     תנאי השימוש
-                  </a>{" "}
+                  </ExternalLink>{" "}
                   ו{" "}
-                  <a
+                  <ExternalLink
                     href="/cancellation-policy"
-                    target="_blank"
-                    rel="noreferrer"
                     className="!no-underline bg-transparent font-bold !text-jacuzzi-gold visited:!text-jacuzzi-gold hover:!text-jacuzzi-cream"
                     style={{ color: "#fde68a", WebkitTextFillColor: "#fde68a", backgroundColor: "transparent", textDecoration: "none" }}
                   >
                     מדיניות הביטולים
-                  </a>
+                  </ExternalLink>
                   .
                 </label>
               </div>
@@ -249,15 +244,13 @@ ${whatsappLegalConsentLine}`;
                 />
                 <label htmlFor="lead-terms" className="cursor-pointer">
                   אני מאשר/ת את{" "}
-                  <a
+                  <ExternalLink
                     href="/terms-of-use"
-                    target="_blank"
-                    rel="noreferrer"
                     className="!no-underline bg-transparent font-bold !text-jacuzzi-gold visited:!text-jacuzzi-gold hover:!text-jacuzzi-cream"
                     style={{ color: "#fde68a", WebkitTextFillColor: "#fde68a", backgroundColor: "transparent", textDecoration: "none" }}
                   >
                     תנאי השימוש
-                  </a>
+                  </ExternalLink>
                 </label>
               </div>
               <div className="flex items-start gap-2">
@@ -272,15 +265,13 @@ ${whatsappLegalConsentLine}`;
                 />
                 <label htmlFor="lead-cancel-policy" className="cursor-pointer">
                   אני מאשר/ת את{" "}
-                  <a
+                  <ExternalLink
                     href="/cancellation-policy"
-                    target="_blank"
-                    rel="noreferrer"
                     className="!no-underline bg-transparent font-bold !text-jacuzzi-gold visited:!text-jacuzzi-gold hover:!text-jacuzzi-cream"
                     style={{ color: "#fde68a", WebkitTextFillColor: "#fde68a", backgroundColor: "transparent", textDecoration: "none" }}
                   >
                     מדיניות הביטולים
-                  </a>
+                  </ExternalLink>
                 </label>
               </div>
               <div className="flex items-start gap-2">
