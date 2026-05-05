@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ExternalLink } from "@/components/external-link";
 import { whatsappLegalConsentLine } from "@/data/site-data";
 
@@ -16,10 +16,12 @@ export function LeadDetailsSection() {
   const [dogAge, setDogAge] = useState("");
   const [dogWeight, setDogWeight] = useState("");
   const [service, setService] = useState("תספורת מלאה");
+  const [serviceMenuOpen, setServiceMenuOpen] = useState(false);
   const [notes, setNotes] = useState("");
-  const [privacyApproved, setPrivacyApproved] = useState(false);
-  const [termsApproved, setTermsApproved] = useState(false);
-  const [cancelPolicyApproved, setCancelPolicyApproved] = useState(false);
+  const serviceDropdownRef = useRef<HTMLDivElement>(null);
+  /** אישור חד־משמעי למסמכים המשפטיים (פרטיות + תנאים + ביטולים) */
+  const [legalDocsApproved, setLegalDocsApproved] = useState(false);
+  /** שיווק — רשות בלבד */
   const [marketingApproved, setMarketingApproved] = useState(false);
   const [formError, setFormError] = useState("");
 
@@ -31,8 +33,27 @@ export function LeadDetailsSection() {
     "התייעצות / הצעת מחיר"
   ];
 
+  useEffect(() => {
+    if (!serviceMenuOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setServiceMenuOpen(false);
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [serviceMenuOpen]);
+
+  useEffect(() => {
+    const onPointerDown = (e: MouseEvent) => {
+      if (serviceDropdownRef.current && !serviceDropdownRef.current.contains(e.target as Node)) {
+        setServiceMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", onPointerDown);
+    return () => document.removeEventListener("mousedown", onPointerDown);
+  }, []);
+
   const missingRequiredFields = !fullName.trim() || !phone.trim() || !area.trim();
-  const missingApprovals = !privacyApproved || !termsApproved || !cancelPolicyApproved || !marketingApproved;
+  const missingLegalApproval = !legalDocsApproved;
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -43,8 +64,8 @@ export function LeadDetailsSection() {
       return;
     }
 
-    if (!privacyApproved || !termsApproved || !cancelPolicyApproved || !marketingApproved) {
-      setFormError("יש לאשר את כל הסעיפים לפני שליחת הפרטים.");
+    if (!legalDocsApproved) {
+      setFormError("יש לאשר את מדיניות הפרטיות, תנאי השימוש ומדיניות הביטולים לפני השליחה.");
       return;
     }
 
@@ -213,23 +234,54 @@ ${whatsappLegalConsentLine}`;
                 className="w-full rounded-xl bg-transparent px-3 py-2 text-sm text-white outline-none ring-1 ring-white/25 placeholder:text-neutral-300 focus:ring-yellow-300/60"
               />
             </div>
-            <div className="space-y-1">
-              <label htmlFor="lead-service" className="text-xs font-bold text-jacuzzi-gold">
+            <div className="space-y-1 md:col-span-2">
+              <label id="lead-service-label" className="text-xs font-bold text-jacuzzi-gold">
                 סוג השירות המבוקש
               </label>
-              <select
-                id="lead-service"
-                name="service"
-                value={service}
-                onChange={(event) => setService(event.target.value)}
-                className="w-full rounded-xl bg-transparent px-3 py-2 text-sm text-white outline-none ring-1 ring-white/25 focus:ring-yellow-300/60"
-              >
-                {serviceOptions.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </select>
+              <div ref={serviceDropdownRef} className="relative">
+                <button
+                  type="button"
+                  id="lead-service"
+                  dir="rtl"
+                  aria-labelledby="lead-service-label"
+                  aria-haspopup="listbox"
+                  aria-expanded={serviceMenuOpen}
+                  onClick={() => setServiceMenuOpen((o) => !o)}
+                  className="flex w-full min-h-[2.75rem] items-center justify-between gap-2 rounded-xl border border-[#d4af37]/45 bg-[#0c1322]/95 px-3 py-2 text-sm text-white shadow-inner outline-none ring-1 ring-white/15 transition hover:border-[#d4af37]/65 focus-visible:ring-2 focus-visible:ring-yellow-300/70"
+                >
+                  <span className="min-w-0 flex-1 truncate">{service}</span>
+                  <span className="shrink-0 text-[#e8cf82]" aria-hidden>
+                    {serviceMenuOpen ? "▴" : "▾"}
+                  </span>
+                </button>
+                {serviceMenuOpen ? (
+                  <ul
+                    role="listbox"
+                    dir="rtl"
+                    aria-labelledby="lead-service-label"
+                    className="absolute left-0 right-0 z-50 mt-1 max-h-52 overflow-auto rounded-xl border border-[#d4af37]/40 bg-[#0c1322] py-1 shadow-[0_12px_40px_rgba(0,0,0,0.45)] ring-1 ring-black/30"
+                  >
+                    {serviceOptions.map((option) => (
+                      <li key={option} role="presentation">
+                        <button
+                          type="button"
+                          role="option"
+                          aria-selected={service === option}
+                          className={`w-full px-3 py-2.5 text-right text-sm transition hover:bg-white/10 ${
+                            service === option ? "bg-[#d4af37]/15 text-[#fde68a]" : "text-neutral-100"
+                          }`}
+                          onClick={() => {
+                            setService(option);
+                            setServiceMenuOpen(false);
+                          }}
+                        >
+                          {option}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+              </div>
             </div>
           </div>
 
@@ -249,20 +301,23 @@ ${whatsappLegalConsentLine}`;
 
           <fieldset className="mt-4 space-y-2 border-0 p-0">
             <legend className="mb-1 text-xs font-bold text-jacuzzi-gold">
-              אישורים נדרשים לפני שליחה <span className="text-jacuzzi-cream/90">(כל הסעיפים חובה)</span>
+              אישורים לפני שליחה
+              <span className="mt-1 block font-normal text-[11px] leading-snug text-jacuzzi-cream/85">
+                חובה: אישור מדיניות הפרטיות, תנאי השימוש ומדיניות הביטולים · עדכונים שיווקיים — לבחירה בלבד
+              </span>
             </legend>
-            <div className="space-y-2 text-xs text-neutral-200">
+            <div className="space-y-3 text-xs text-neutral-200">
               <div className="flex items-start gap-2">
                 <input
-                  id="lead-privacy"
+                  id="lead-legal-docs"
                   type="checkbox"
-                  checked={privacyApproved}
-                  onChange={(event) => setPrivacyApproved(event.target.checked)}
+                  checked={legalDocsApproved}
+                  onChange={(event) => setLegalDocsApproved(event.target.checked)}
                   className="mt-0.5 h-4 w-4 shrink-0 rounded border-white/30 bg-transparent accent-yellow-300"
                   aria-required="true"
-                  aria-invalid={formError ? missingApprovals && !privacyApproved : undefined}
+                  aria-invalid={formError ? missingLegalApproval && !legalDocsApproved : undefined}
                 />
-                <label htmlFor="lead-privacy" className="cursor-pointer">
+                <label htmlFor="lead-legal-docs" className="cursor-pointer leading-relaxed">
                   קראתי ואני מאשר/ת את{" "}
                   <ExternalLink
                     href="/privacy-policy"
@@ -278,8 +333,8 @@ ${whatsappLegalConsentLine}`;
                     style={{ color: "#fde68a", WebkitTextFillColor: "#fde68a", backgroundColor: "transparent", textDecoration: "none" }}
                   >
                     תנאי השימוש
-                  </ExternalLink>{" "}
-                  ו{" "}
+                  </ExternalLink>
+                  {'ו'}
                   <ExternalLink
                     href="/cancellation-policy"
                     className="!no-underline bg-transparent font-bold !text-jacuzzi-gold visited:!text-jacuzzi-gold hover:!text-jacuzzi-cream"
@@ -292,58 +347,16 @@ ${whatsappLegalConsentLine}`;
               </div>
               <div className="flex items-start gap-2">
                 <input
-                  id="lead-terms"
-                  type="checkbox"
-                  checked={termsApproved}
-                  onChange={(event) => setTermsApproved(event.target.checked)}
-                  className="mt-0.5 h-4 w-4 shrink-0 rounded border-white/30 bg-transparent accent-yellow-300"
-                  aria-required="true"
-                  aria-invalid={formError ? missingApprovals && !termsApproved : undefined}
-                />
-                <label htmlFor="lead-terms" className="cursor-pointer">
-                  אני מאשר/ת את{" "}
-                  <ExternalLink
-                    href="/terms-of-use"
-                    className="!no-underline bg-transparent font-bold !text-jacuzzi-gold visited:!text-jacuzzi-gold hover:!text-jacuzzi-cream"
-                    style={{ color: "#fde68a", WebkitTextFillColor: "#fde68a", backgroundColor: "transparent", textDecoration: "none" }}
-                  >
-                    תנאי השימוש
-                  </ExternalLink>
-                </label>
-              </div>
-              <div className="flex items-start gap-2">
-                <input
-                  id="lead-cancel-policy"
-                  type="checkbox"
-                  checked={cancelPolicyApproved}
-                  onChange={(event) => setCancelPolicyApproved(event.target.checked)}
-                  className="mt-0.5 h-4 w-4 shrink-0 rounded border-white/30 bg-transparent accent-yellow-300"
-                  aria-required="true"
-                  aria-invalid={formError ? missingApprovals && !cancelPolicyApproved : undefined}
-                />
-                <label htmlFor="lead-cancel-policy" className="cursor-pointer">
-                  אני מאשר/ת את{" "}
-                  <ExternalLink
-                    href="/cancellation-policy"
-                    className="!no-underline bg-transparent font-bold !text-jacuzzi-gold visited:!text-jacuzzi-gold hover:!text-jacuzzi-cream"
-                    style={{ color: "#fde68a", WebkitTextFillColor: "#fde68a", backgroundColor: "transparent", textDecoration: "none" }}
-                  >
-                    מדיניות הביטולים
-                  </ExternalLink>
-                </label>
-              </div>
-              <div className="flex items-start gap-2">
-                <input
                   id="lead-marketing"
                   type="checkbox"
                   checked={marketingApproved}
                   onChange={(event) => setMarketingApproved(event.target.checked)}
                   className="mt-0.5 h-4 w-4 shrink-0 rounded border-white/30 bg-transparent accent-yellow-300"
-                  aria-required="true"
-                  aria-invalid={formError ? missingApprovals && !marketingApproved : undefined}
                 />
-                <label htmlFor="lead-marketing" className="cursor-pointer">
-                  אני מאשר/ת קבלת הודעות ועדכונים שיווקיים בכפוף לדין
+                <label htmlFor="lead-marketing" className="cursor-pointer leading-relaxed">
+                  <span className="font-bold text-jacuzzi-gold">אני מאשר/ת</span> קבלת{" "}
+                  <span className="font-bold text-[#fde68a]">הודעות ועדכונים שיווקיים</span> בכפוף לדין (לא חובה לשליחת
+                  הטופס)
                 </label>
               </div>
             </div>
