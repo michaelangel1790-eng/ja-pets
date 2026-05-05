@@ -9,6 +9,7 @@ const LEAD_ERROR_ID = "lead-form-error-summary";
 export function LeadDetailsSection() {
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
+  const [streetAddress, setStreetAddress] = useState("");
   const [area, setArea] = useState("");
   const [dogName, setDogName] = useState("");
   const [dogType, setDogType] = useState("");
@@ -52,9 +53,10 @@ export function LeadDetailsSection() {
 
 פרטים מהאתר — תיאום טיפוח.
 
+פרטי לקוח
 שם מלא: ${fullName.trim()}
 טלפון: ${phone.trim()}
-כתובת:
+כתובת: ${streetAddress.trim() || "—"}
 אזור מגורים: ${area.trim()}
 
 פרטי הכלב
@@ -67,7 +69,7 @@ export function LeadDetailsSection() {
 
 הערות: ${notes.trim() || "—"}
 
-אישורים נדרשים באתר סומנו לפני השליחה.
+לפי הסימון בטופס, האישורים הנדרשים אושרו לפני השליחה.
 
 תודה!
 
@@ -90,8 +92,11 @@ ${whatsappLegalConsentLine}`;
           aria-describedby={formError ? LEAD_ERROR_ID : undefined}
           noValidate
         >
-          <p className="text-sm font-bold text-jacuzzi-gold">השאירו פרטים ונחזור אליכם עם מענה מהיר דרך וואטסאפ.</p>
+          <p className="text-sm font-bold text-jacuzzi-gold">
+            השאירו פרטים — נחזור עם מענה מהיר בוואטסאפ. נא למלא את פרטי הלקוח ואת פרטי הכלב.
+          </p>
           <div className="mt-3 grid gap-3 md:grid-cols-2">
+            <h3 className="col-span-full text-sm font-extrabold text-cyan-200/95">פרטי לקוח</h3>
             <div className="space-y-1">
               <label htmlFor="lead-full-name" className="text-xs font-bold text-jacuzzi-gold">
                 שם מלא <span className="text-jacuzzi-cream/90">(חובה)</span>
@@ -126,6 +131,20 @@ ${whatsappLegalConsentLine}`;
               />
             </div>
             <div className="space-y-1">
+              <label htmlFor="lead-street" className="text-xs font-bold text-jacuzzi-gold">
+                כתובת
+              </label>
+              <input
+                id="lead-street"
+                type="text"
+                name="streetAddress"
+                autoComplete="street-address"
+                value={streetAddress}
+                onChange={(event) => setStreetAddress(event.target.value)}
+                className="w-full rounded-xl bg-transparent px-3 py-2 text-sm text-white outline-none ring-1 ring-white/25 placeholder:text-neutral-300 focus:ring-yellow-300/60"
+              />
+            </div>
+            <div className="space-y-1">
               <label htmlFor="lead-area" className="text-xs font-bold text-jacuzzi-gold">
                 שכונה / עיר <span className="text-jacuzzi-cream/90">(חובה)</span>
               </label>
@@ -141,6 +160,7 @@ ${whatsappLegalConsentLine}`;
                 aria-invalid={formError ? missingRequiredFields && !area.trim() : undefined}
               />
             </div>
+            <h3 className="col-span-full mt-1 text-sm font-extrabold text-cyan-200/95">פרטי הכלב</h3>
             <div className="space-y-1">
               <label htmlFor="lead-dog-type" className="text-xs font-bold text-jacuzzi-gold">
                 גזע
