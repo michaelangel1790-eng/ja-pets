@@ -10,7 +10,9 @@ export function LeadDetailsSection() {
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [area, setArea] = useState("");
+  const [dogName, setDogName] = useState("");
   const [dogType, setDogType] = useState("");
+  const [dogAge, setDogAge] = useState("");
   const [dogWeight, setDogWeight] = useState("");
   const [service, setService] = useState("תספורת מלאה");
   const [notes, setNotes] = useState("");
@@ -55,8 +57,12 @@ export function LeadDetailsSection() {
 כתובת:
 אזור מגורים: ${area.trim()}
 
-כלב (גזע): ${dogType.trim() || "—"}
-משקל: ${dogWeight.trim() || "—"}
+פרטי הכלב
+גזע: ${dogType.trim() || "—"}
+גיל (בערך): ${dogAge.trim() || "—"}
+משקל משוער: ${dogWeight.trim() || "—"}
+שם הכלב: ${dogName.trim() || "—"}
+
 שירות: ${service}
 
 הערות: ${notes.trim() || "—"}
@@ -137,7 +143,7 @@ ${whatsappLegalConsentLine}`;
             </div>
             <div className="space-y-1">
               <label htmlFor="lead-dog-type" className="text-xs font-bold text-jacuzzi-gold">
-                סוג הכלב / גזע
+                גזע
               </label>
               <input
                 id="lead-dog-type"
@@ -149,8 +155,21 @@ ${whatsappLegalConsentLine}`;
               />
             </div>
             <div className="space-y-1">
+              <label htmlFor="lead-dog-age" className="text-xs font-bold text-jacuzzi-gold">
+                גיל (בערך)
+              </label>
+              <input
+                id="lead-dog-age"
+                type="text"
+                name="dogAge"
+                value={dogAge}
+                onChange={(event) => setDogAge(event.target.value)}
+                className="w-full rounded-xl bg-transparent px-3 py-2 text-sm text-white outline-none ring-1 ring-white/25 placeholder:text-neutral-300 focus:ring-yellow-300/60"
+              />
+            </div>
+            <div className="space-y-1">
               <label htmlFor="lead-dog-weight" className="text-xs font-bold text-jacuzzi-gold">
-                משקל הכלב
+                משקל משוער
               </label>
               <input
                 id="lead-dog-weight"
@@ -158,6 +177,19 @@ ${whatsappLegalConsentLine}`;
                 name="dogWeight"
                 value={dogWeight}
                 onChange={(event) => setDogWeight(event.target.value)}
+                className="w-full rounded-xl bg-transparent px-3 py-2 text-sm text-white outline-none ring-1 ring-white/25 placeholder:text-neutral-300 focus:ring-yellow-300/60"
+              />
+            </div>
+            <div className="space-y-1">
+              <label htmlFor="lead-dog-name" className="text-xs font-bold text-jacuzzi-gold">
+                שם הכלב
+              </label>
+              <input
+                id="lead-dog-name"
+                type="text"
+                name="dogName"
+                value={dogName}
+                onChange={(event) => setDogName(event.target.value)}
                 className="w-full rounded-xl bg-transparent px-3 py-2 text-sm text-white outline-none ring-1 ring-white/25 placeholder:text-neutral-300 focus:ring-yellow-300/60"
               />
             </div>
