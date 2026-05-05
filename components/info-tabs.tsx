@@ -1742,6 +1742,7 @@ export function InfoTabs() {
                   </a>
                   <WhatsAppExternalLink
                     message={whatsappMessage}
+                    aria-label="קביעת תור בוואטסאפ — מתוך לשונית מה כלול"
                     className="inline-flex min-h-10 items-center justify-center rounded-xl border border-[#D4AF37]/40 bg-[#D4AF37]/12 px-4 py-2 text-sm font-extrabold text-[#F1D27A] shadow-[0_8px_18px_rgba(0,0,0,0.28)] transition hover:-translate-y-[1px] hover:bg-[#D4AF37]/20"
                   >
                     קביעת תור בוואטסאפ
@@ -1867,9 +1868,9 @@ export function InfoTabs() {
                           className="h-10 w-16 shrink-0 object-contain md:h-12 md:w-20"
                         />
                         <div className="jacuzzi-track-headline-frame min-w-0 flex-1">
-                          <p className="text-base font-extrabold text-cyan-200 md:text-lg">
+                          <h4 className="m-0 text-base font-extrabold text-cyan-200 md:text-lg">
                             מסלול פלטינום - שירות נייד עד הבית
-                          </p>
+                          </h4>
                         </div>
                       </div>
                       <p>
@@ -1891,9 +1892,9 @@ export function InfoTabs() {
                           className="h-10 w-16 shrink-0 object-contain md:h-12 md:w-20"
                         />
                         <div className="jacuzzi-track-headline-frame min-w-0 flex-1">
-                          <p className="text-base font-extrabold text-pink-200 md:text-lg">
+                          <h4 className="m-0 text-base font-extrabold text-pink-200 md:text-lg">
                             מסלול פרמיום - הגעה למשאית לפי השכונה שקרובה לך
-                          </p>
+                          </h4>
                         </div>
                       </div>
                       <p>
@@ -1945,6 +1946,7 @@ export function InfoTabs() {
                   </a>
                   <WhatsAppExternalLink
                     message={whatsappMessage}
+                    aria-label="קביעת תור בוואטסאפ — מתוך לשונית אודות"
                     className="inline-flex min-h-10 items-center justify-center rounded-xl border border-[#D4AF37]/40 bg-[#D4AF37]/12 px-4 py-2 text-sm font-extrabold text-[#F1D27A] shadow-[0_8px_18px_rgba(0,0,0,0.28)] transition hover:-translate-y-[1px] hover:bg-[#D4AF37]/20"
                   >
                     קביעת תור בוואטסאפ
@@ -2238,9 +2240,9 @@ export function InfoTabs() {
 
           <div role="tabpanel" id="panel-gallery" hidden={activeTab !== "gallery"} aria-labelledby="tab-gallery" className="space-y-4">
               <div className="space-y-3 rounded-2xl border border-[#D4AF37]/22 bg-gradient-to-br from-white/[0.07] to-transparent p-4 shadow-[0_10px_30px_rgba(0,0,0,0.22)] md:p-5">
-                <p className="text-base font-extrabold text-yellow-100 md:text-lg">
+                <h3 className="m-0 text-base font-extrabold text-yellow-100 md:text-lg">
                   גלריית תספורות, דילולים וטיפוחים
-                </p>
+                </h3>
                 <p className="text-sm font-semibold text-cyan-100/95">
                   אלפי כלבים מטופלים, מאות לקוחות חוזרים - תוצאות אמיתיות מהשטח.
                 </p>
@@ -3047,6 +3049,7 @@ export function InfoTabs() {
                   </a>
                   <WhatsAppExternalLink
                     message={whatsappMessage}
+                    aria-label="קביעת תור בוואטסאפ — מתוך לשונית שאלות נפוצות"
                     className="inline-flex min-h-10 items-center justify-center rounded-xl border border-[#D4AF37]/45 bg-[#D4AF37]/14 px-4 py-2 text-sm font-extrabold text-[#F1D27A] shadow-[0_8px_18px_rgba(0,0,0,0.28)] transition hover:bg-[#D4AF37]/22"
                   >
                     קביעת תור בוואטסאפ
