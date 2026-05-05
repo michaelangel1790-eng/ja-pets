@@ -67,7 +67,7 @@ function ConsentSwitch({
       role="switch"
       aria-checked={pressed}
       aria-labelledby={labelledBy}
-      aria-describedby={describedBy}
+      {...(describedBy ? { "aria-describedby": describedBy } : {})}
       onClick={onToggle}
       className={[
         "relative flex h-8 w-[3.25rem] shrink-0 items-center rounded-full p-1 transition-[background-color,box-shadow] duration-200",
@@ -171,6 +171,37 @@ export function CookieConsentBanner() {
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
+  }, [showSettings]);
+
+  /** לכידת Tab בתוך דיאלוג ההגדרות (WCAG 2.1 — ניווט מקלדת בחלונות) */
+  useEffect(() => {
+    if (!showSettings || !dialogRef.current) return;
+    const root = dialogRef.current;
+    const getFocusable = () =>
+      Array.from(
+        root.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        )
+      ).filter((el) => el.offsetParent !== null || el === document.activeElement);
+    const onTab = (e: KeyboardEvent) => {
+      if (e.key !== "Tab") return;
+      const nodes = getFocusable();
+      if (nodes.length === 0) return;
+      const first = nodes[0];
+      const last = nodes[nodes.length - 1];
+      const active = document.activeElement as HTMLElement | null;
+      if (e.shiftKey) {
+        if (active === first || !root.contains(active)) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else if (active === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+    root.addEventListener("keydown", onTab);
+    return () => root.removeEventListener("keydown", onTab);
   }, [showSettings]);
 
   useEffect(() => {

@@ -1503,9 +1503,14 @@ export function InfoTabs() {
           onKeyDown={handleTabListKeyDown}
         >
           {tabs.map((tab) => (
-            <a
+            <button
               key={tab.id}
-              href={`/?tab=${tab.id}#tabs`}
+              type="button"
+              role="tab"
+              id={`tab-${tab.id}`}
+              aria-controls={`panel-${tab.id}`}
+              aria-selected={activeTab === tab.id}
+              tabIndex={activeTab === tab.id ? 0 : -1}
               onClick={(event) => {
                 event.preventDefault();
                 setActiveTab(tab.id);
@@ -1521,11 +1526,7 @@ export function InfoTabs() {
                   );
                 }
               }}
-              role="tab"
-              id={`tab-${tab.id}`}
-              aria-controls={`panel-${tab.id}`}
-              aria-selected={activeTab === tab.id}
-              className="inline-flex min-h-11 w-full items-center justify-center rounded-full px-3 py-2 text-[13px] font-bold no-underline transition-transform duration-150 hover:-translate-y-[1px] sm:min-h-12 sm:px-4 sm:text-sm md:min-h-11"
+              className="inline-flex min-h-11 w-full cursor-pointer items-center justify-center rounded-full border-0 px-3 py-2 text-[13px] font-bold no-underline transition-transform duration-150 hover:-translate-y-[1px] sm:min-h-12 sm:px-4 sm:text-sm md:min-h-11"
               style={
                 activeTab === tab.id
                   ? {
@@ -1549,13 +1550,12 @@ export function InfoTabs() {
               }
             >
               {tab.label}
-            </a>
+            </button>
           ))}
         </div>
 
         <div className="tab-panel mt-6 overflow-visible rounded-2xl bg-transparent p-4 text-[0.96rem] leading-7 md:mt-5 md:p-5 md:text-base md:leading-8">
-          {activeTab === "services" ? (
-            <div role="tabpanel" id="panel-services" aria-labelledby="tab-services" className="flex flex-col gap-5">
+          <div role="tabpanel" id="panel-services" hidden={activeTab !== "services"} aria-labelledby="tab-services" className="flex flex-col gap-5">
               <article className="overflow-hidden rounded-2xl bg-transparent p-5">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
                   <div className="relative flex h-20 w-full shrink-0 items-center justify-center sm:h-24 sm:w-36">
@@ -1605,10 +1605,8 @@ export function InfoTabs() {
                 </div>
               </article>
             </div>
-          ) : null}
 
-          {activeTab === "pricing" ? (
-            <div role="tabpanel" id="panel-pricing" aria-labelledby="tab-pricing" className="space-y-4">
+          <div role="tabpanel" id="panel-pricing" hidden={activeTab !== "pricing"} aria-labelledby="tab-pricing" className="space-y-4">
               <p
                 className="text-sm font-bold !text-[#d4af37]"
                 style={{ color: "#d4af37", WebkitTextFillColor: "#d4af37" }}
@@ -1708,10 +1706,8 @@ export function InfoTabs() {
                 </p>
               </div>
             </div>
-          ) : null}
 
-          {activeTab === "how" ? (
-            <div role="tabpanel" id="panel-how" aria-labelledby="tab-how" className="space-y-4">
+          <div role="tabpanel" id="panel-how" hidden={activeTab !== "how"} aria-labelledby="tab-how" className="space-y-4">
               <div className="grid gap-3 md:grid-cols-3">
                 {howItWorksSteps.map((step, index) => (
                   <article key={step} className="rounded-2xl bg-transparent p-4">
@@ -1736,10 +1732,8 @@ export function InfoTabs() {
               </a>
               <p className="text-xs text-neutral-200">ללקויי שמיעה: ניתן לבצע תיאום מלא גם בוואטסאפ, ללא שיחה טלפונית.</p>
             </div>
-          ) : null}
 
-          {activeTab === "included" ? (
-            <div role="tabpanel" id="panel-included" aria-labelledby="tab-included" className="space-y-5">
+          <div role="tabpanel" id="panel-included" hidden={activeTab !== "included"} aria-labelledby="tab-included" className="space-y-5">
               <div className="-mt-8 mb-1 flex w-full justify-start ps-1" style={{ direction: "ltr" }}>
                 <div className="flex flex-col items-start gap-2">
                   <a
@@ -1776,12 +1770,11 @@ export function InfoTabs() {
                 ))}
               </div>
             </div>
-          ) : null}
 
-          {activeTab === "about" ? (
-            <div
+          <div
               role="tabpanel"
               id="panel-about"
+              hidden={activeTab !== "about"}
               aria-labelledby="tab-about"
               className="mx-auto max-w-4xl space-y-6 text-right text-[0.98rem] leading-8 text-neutral-100 md:space-y-8 md:text-[1.05rem] md:leading-9"
             >
@@ -1966,10 +1959,8 @@ export function InfoTabs() {
               </div>
 
             </div>
-          ) : null}
 
-          {activeTab === "testimonials" ? (
-            <div role="tabpanel" id="panel-testimonials" aria-labelledby="tab-testimonials" className="space-y-4">
+          <div role="tabpanel" id="panel-testimonials" hidden={activeTab !== "testimonials"} aria-labelledby="tab-testimonials" className="space-y-4">
               <p className="text-sm font-bold text-yellow-100">לקוחות משתפים על החוויה עם JACUZZI</p>
               <div className="flex flex-wrap items-center gap-2">
                 <button
@@ -2250,10 +2241,8 @@ export function InfoTabs() {
                 ) : null}
               </div>
             </div>
-          ) : null}
 
-          {activeTab === "gallery" ? (
-            <div role="tabpanel" id="panel-gallery" aria-labelledby="tab-gallery" className="space-y-4">
+          <div role="tabpanel" id="panel-gallery" hidden={activeTab !== "gallery"} aria-labelledby="tab-gallery" className="space-y-4">
               <div className="space-y-3 rounded-2xl border border-[#D4AF37]/22 bg-gradient-to-br from-white/[0.07] to-transparent p-4 shadow-[0_10px_30px_rgba(0,0,0,0.22)] md:p-5">
                 <p className="text-base font-extrabold text-yellow-100 md:text-lg">
                   גלריית תספורות, דילולים וטיפוחים
@@ -2885,16 +2874,13 @@ export function InfoTabs() {
                       </button>
                     </div>
                   </div>
-                </div>
-                  ,
-                  document.body
-                )
+                </div>,
+                document.body
+              )
                 : null}
             </div>
-          ) : null}
 
-          {activeTab === "location" ? (
-            <div role="tabpanel" id="panel-location" aria-labelledby="tab-location" className="space-y-4">
+          <div role="tabpanel" id="panel-location" hidden={activeTab !== "location"} aria-labelledby="tab-location" className="space-y-4">
               <div className="rounded-2xl bg-yellow-300/10 px-4 py-3 text-right">
                 <p className="text-sm font-bold text-yellow-100">
                   נשמח לקבל אתכם במשאית בשעות הפעילות. לתיאום תספורת יש לקבוע תור מראש דרך המוקד או מול הספר/ית.
@@ -3046,10 +3032,8 @@ export function InfoTabs() {
               </div>
 
             </div>
-          ) : null}
 
-          {activeTab === "faq" ? (
-            <div role="tabpanel" id="panel-faq" aria-labelledby="tab-faq" className="space-y-4">
+          <div role="tabpanel" id="panel-faq" hidden={activeTab !== "faq"} aria-labelledby="tab-faq" className="space-y-4">
               <div className="rounded-2xl border border-[#D4AF37]/22 bg-gradient-to-br from-white/[0.06] to-transparent p-4 shadow-[0_10px_28px_rgba(0,0,0,0.22)] md:flex md:flex-row-reverse md:items-center md:justify-between md:gap-6 md:p-5">
                 <p className="text-sm leading-relaxed text-neutral-100 md:max-w-xl md:flex-1">
                   ריכזנו כאן את כל מה שחשוב לדעת לפני טיפול - אם יש שאלה נוספת, תמיד אפשר לפנות אלינו בוואטסאפ.
@@ -3088,10 +3072,8 @@ export function InfoTabs() {
                 ))}
               </div>
             </div>
-          ) : null}
 
-          {activeTab === "contact" ? (
-            <div role="tabpanel" id="panel-contact" aria-labelledby="tab-contact" className="grid gap-4 md:grid-cols-2">
+          <div role="tabpanel" id="panel-contact" hidden={activeTab !== "contact"} aria-labelledby="tab-contact" className="grid gap-4 md:grid-cols-2">
               <div className="rounded-2xl border border-[#D4AF37]/22 bg-gradient-to-br from-white/[0.07] to-transparent p-5 shadow-[0_12px_32px_rgba(0,0,0,0.24)]">
                 <p className="text-lg font-bold text-cyan-200">טלפונים</p>
                 <div className="mt-3 space-y-1.5 border-t border-white/10 pt-3">
@@ -3116,7 +3098,6 @@ export function InfoTabs() {
                 </span>
               </a>
             </div>
-          ) : null}
         </div>
         </div>
       </div>

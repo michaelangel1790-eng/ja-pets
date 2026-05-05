@@ -10,10 +10,12 @@ export default function HomePage() {
     <main
       id="main-content"
       tabIndex={-1}
+      aria-labelledby="jacuzzi-main-page-title"
       className="relative pb-[max(2rem,env(safe-area-inset-bottom,0px))] md:pb-10"
     >
       <div className="relative z-10">
         <h1
+          id="jacuzzi-main-page-title"
           className="visually-hidden"
           style={{
             position: "absolute",

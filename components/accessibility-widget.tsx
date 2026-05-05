@@ -1001,12 +1001,12 @@ export function AccessibilityWidget() {
             onKeyDown={handleMenuKeyDown}
             className="absolute w-[min(18rem,calc(100vw-1.5rem))] max-h-[min(70vh,32rem)] overflow-y-auto rounded-2xl border border-neutral-200 bg-white p-2 text-right text-neutral-900 shadow-[0_12px_40px_rgba(0,0,0,0.18)] ring-1 ring-black/5"
           >
-            <p
+            <h2
               id="jacuzzi-a11y-menu-title"
-              className="border-b border-neutral-100 px-2 py-2 text-center text-base font-bold text-neutral-900"
+              className="m-0 border-b border-neutral-100 px-2 py-2 text-center text-base font-bold text-neutral-900"
             >
               כלי נגישות
-            </p>
+            </h2>
             <p className="border-b border-neutral-100 px-2 pb-2 text-center text-[10px] leading-snug text-neutral-500">
               התאמות לפי תקן נגישות ישראלי (ת״י 5568) והנחיות WCAG 2.x ברמת AA, ככל שהן חלות על אתר זה.
             </p>
