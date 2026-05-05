@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { CookiePreferencesFooterLink } from "@/components/cookie-preferences-footer-link";
 
 const links = [
   { href: "/accessibility-statement", label: "הצהרת נגישות" },
@@ -29,6 +30,9 @@ export function SiteLegalFooter() {
               </Link>
             </span>
           ))}
+        </p>
+        <p className="mt-2.5 mb-0">
+          <CookiePreferencesFooterLink />
         </p>
       </div>
     </footer>

@@ -1,7 +1,8 @@
 import type { Metadata, Viewport } from "next";
+import { ConsentAwarePlausible } from "@/components/consent-aware-plausible";
+import { CookieConsentBanner } from "@/components/cookie-consent-banner";
 import { CopyrightCorner } from "@/components/copyright-corner";
 import { JsonLdLocalBusiness } from "@/components/json-ld-local-business";
-import { PlausibleAnalytics } from "@/components/plausible-analytics";
 import { mainLogoHeight, mainLogoSrc, mainLogoWidth } from "@/lib/site-images";
 import { getSiteUrl } from "@/lib/site-url";
 import "./globals.css";
@@ -56,7 +57,8 @@ export default function RootLayout({
     <html lang="he" dir="rtl">
       <body>
         <JsonLdLocalBusiness />
-        <PlausibleAnalytics />
+        <ConsentAwarePlausible />
+        <CookieConsentBanner />
         <a href="#main-content" className="skip-link">
           דלג לתוכן הראשי
         </a>

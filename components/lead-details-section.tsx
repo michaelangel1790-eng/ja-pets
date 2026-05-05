@@ -47,21 +47,16 @@ export function LeadDetailsSection() {
     const whatsappLeadNumber = "972505501662";
     const message = `היי,
 
-השארתי פרטים דרך האתר — אשמח לתיאום ב־JACUZZI.
+פרטים מהאתר — תיאום ב־JACUZZI.
 
-פרטי קשר
 שם: ${fullName.trim()}
 טלפון: ${phone.trim()}
-אזור / עיר: ${area.trim()}
-
-פרטי הכלב
-גזע / סוג: ${dogType.trim() || "—"}
-משקל: ${dogWeight.trim() || "—"}
-
-שירות מבוקש: ${service}
+אזור: ${area.trim()}
+כלב: ${dogType.trim() || "—"} · משקל: ${dogWeight.trim() || "—"}
+שירות: ${service}
 הערות: ${notes.trim() || "—"}
 
-אישורים בסימון באתר: פרטיות · תנאי שימוש · ביטולים · שיווק (לפי מה שסימנתי).
+אישורים באתר אושרו.
 
 —
 ${whatsappLegalConsentLine}`;
