@@ -1007,7 +1007,7 @@ export function AccessibilityWidget() {
             >
               כלי נגישות
             </h2>
-            <p className="border-b border-neutral-100 px-2 pb-2 text-center text-[10px] leading-snug text-neutral-500">
+            <p className="border-b border-neutral-100 px-2 pb-2 text-center text-xs leading-snug text-neutral-500">
               התאמות לפי תקן נגישות ישראלי (ת״י 5568) והנחיות WCAG 2.x ברמת AA, ככל שהן חלות על אתר זה.
             </p>
             <MenuSectionTitle>מיקום כפתור הנגישות</MenuSectionTitle>

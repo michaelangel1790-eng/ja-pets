@@ -19,7 +19,7 @@ export function FloatingWhatsApp() {
     >
       <span dir="rtl" className="flex max-w-[min(11.5rem,46vw)] flex-col text-right">
         <span className="select-none font-semibold leading-none tracking-wide text-[#e6c16a]">וואטסאפ</span>
-        <span className="mt-1 select-none text-[9px] leading-snug text-neutral-300 md:text-[10px] md:leading-relaxed">
+        <span className="mt-1 select-none text-xs leading-snug text-neutral-300 md:text-[0.8125rem] md:leading-relaxed">
           {whatsappFabConsentShort}
         </span>
       </span>

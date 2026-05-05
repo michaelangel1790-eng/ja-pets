@@ -1774,7 +1774,7 @@ export function InfoTabs() {
               aria-labelledby="tab-about"
               className="mx-auto max-w-4xl space-y-6 text-right text-[0.98rem] leading-8 text-neutral-100 md:space-y-8 md:text-[1.05rem] md:leading-9"
             >
-              <p className="text-xl font-extrabold text-cyan-200 md:text-2xl">ברוכים הבאים לרשת JACUZZI</p>
+              <h3 className="text-xl font-extrabold text-cyan-200 md:text-2xl">ברוכים הבאים לרשת JACUZZI</h3>
               <p className="text-lg font-bold text-pink-200 md:text-xl">ספא ומספרת כלבים מקצועית ברמה גבוהה</p>
 
               <section className="space-y-3 border-t border-white/10 pt-5">
@@ -2435,7 +2435,7 @@ export function InfoTabs() {
                       className="pointer-events-auto mt-1.5 space-y-0.5 rounded-lg bg-black/45 px-2 py-1.5 ring-1 ring-white/15"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      <span className="block text-[10px] font-bold text-neutral-300">כיתוב (אופציונלי)</span>
+                      <span className="block text-xs font-bold text-neutral-300">כיתוב (אופציונלי)</span>
                       <select
                         value={item.caption || ""}
                         onChange={(e) => {
@@ -2757,7 +2757,7 @@ export function InfoTabs() {
                 <p className="text-xs font-semibold text-yellow-100/85">ניהול גלריה (מנהל בלבד)</p>
                 <div className="mt-2 flex flex-wrap items-end gap-2">
                   <div className="flex min-w-[10rem] flex-col gap-1">
-                    <label htmlFor="gallery-admin-code" className="text-[11px] font-semibold text-yellow-100/85">
+                    <label htmlFor="gallery-admin-code" className="text-xs font-semibold text-yellow-100/85">
                       קוד מנהל להעלאת תמונות
                     </label>
                     <input

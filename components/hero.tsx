@@ -21,6 +21,12 @@ export function Hero() {
               priority
               unoptimized
             />
+            <h1
+              id="jacuzzi-main-page-title"
+              className="mx-auto mt-5 max-w-[min(96vw,34rem)] text-center text-base font-semibold leading-snug tracking-wide text-neutral-100 md:mt-7 md:text-xl md:leading-relaxed"
+            >
+              מספרת כלבים ניידת ומשאית טיפוח בירושלים
+            </h1>
           </div>
         </div>
       </div>
