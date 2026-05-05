@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { whatsappLegalConsentLine } from "@/data/site-data";
 
 const LEAD_ERROR_ID = "lead-form-error-summary";
 
@@ -44,21 +45,29 @@ export function LeadDetailsSection() {
     }
 
     const whatsappLeadNumber = "972505501662";
-    const message = `שלום, אשמח לקבל פרטים / לתאם שירות דרך JACUZZI.
+    const message = `היי,
+אשמח לתאם שירות ב־JACUZZI — השארתי פרטים דרך האתר.
 
+פרטי לקוח
 שם מלא: ${fullName.trim()}
 טלפון: ${phone.trim()}
-שכונה / עיר: ${area.trim()}
-סוג הכלב / גזע: ${dogType.trim() || "-"}
-משקל הכלב: ${dogWeight.trim() || "-"}
-סוג השירות המבוקש: ${service}
-הערות נוספות: ${notes.trim() || "-"}
+כתובת: —
 
-אישורים:
-מאשר/ת מדיניות פרטיות
-מאשר/ת תנאי שימוש
-מאשר/ת מדיניות ביטולים
-מאשר/ת קבלת הודעות ועדכונים שיווקיים`;
+פרטי הכלב
+שם הכלב: —
+גזע: ${dogType.trim() || "—"}
+גיל: —
+משקל משוער: ${dogWeight.trim() || "—"}
+
+אזור מגורים: ${area.trim()}
+מסלול מועדף: פלטינום / פרמיום (נא לציין)
+
+סוג השירות המבוקש: ${service}
+הערות נוספות: ${notes.trim() || "—"}
+
+אישורים (סומן באתר): מדיניות פרטיות, תנאי שימוש, מדיניות ביטולים, עדכונים שיווקיים לפי הסימון.
+
+${whatsappLegalConsentLine}`;
 
     const whatsappUrl = `https://wa.me/${whatsappLeadNumber}?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, "_blank", "noopener,noreferrer");

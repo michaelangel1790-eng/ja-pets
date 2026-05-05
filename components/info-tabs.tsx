@@ -6,7 +6,16 @@ import { createPortal } from "react-dom";
 import { haircutPricingPlans, thinningPricingPlans, truckMonthlyLocations, type GalleryItem } from "@/data/marketing-data";
 import { compressFilesForGalleryUpload } from "@/lib/gallery-compress-client";
 import { truckPromoNobgSrc } from "@/lib/site-images";
-import { faqItems, howItWorksSteps, phoneNumbers, testimonials, whatsappMessage, whatsappNumber } from "@/data/site-data";
+import {
+  faqItems,
+  howItWorksSteps,
+  phoneNumbers,
+  testimonials,
+  whatsappMessage,
+  whatsappMessageGallery,
+  whatsappMessageTruckLocation,
+  whatsappNumber
+} from "@/data/site-data";
 import { safeParseResponseJson } from "@/lib/safe-response-json";
 import { sortGalleryItemsLikeApi } from "@/lib/gallery-sort";
 import { GALLERY_ALLOWED_CAPTIONS } from "@/lib/gallery-captions";
@@ -2265,7 +2274,7 @@ export function InfoTabs() {
               <div className="text-xs text-neutral-200">
                 <span>רוצים גם תוצאה כזו? </span>
                 <a
-                  href={`https://wa.me/${whatsappNumber}?text=${encodeURIComponent("שלום, אשמח לקבל התאמה והצעת מחיר. מצרף/ת פרטים ותמונה של הכלב.")}`}
+                  href={`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessageGallery)}`}
                   target="_blank"
                   rel="noreferrer"
                   className="mx-1 inline-flex items-center bg-transparent px-0 py-0 text-xs font-extrabold text-[#D4AF37] underline decoration-[#D4AF37]/70 underline-offset-2 transition hover:text-[#E7C870] hover:decoration-[#E7C870] active:scale-[0.98]"
@@ -2756,7 +2765,7 @@ export function InfoTabs() {
                             איפוס זום
                           </button>
                           <a
-                            href={`https://wa.me/${whatsappNumber}?text=${encodeURIComponent("שלום, ראיתי תמונה בגלריה ואשמח לקבל פרטים / לתאם שירות.")}`}
+                            href={`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessageGallery)}`}
                             target="_blank"
                             rel="noreferrer"
                             className="rounded-xl border border-[#D4AF37]/60 bg-[#D4AF37]/15 px-3 py-1 text-xs font-bold text-[#D4AF37] transition hover:bg-[#D4AF37]/25"
@@ -2936,7 +2945,7 @@ export function InfoTabs() {
               <div className="rounded-2xl bg-white/5 p-4">
                 <p className="text-sm font-bold text-yellow-100">מיקום המשאית מתעדכן אחת לחודש עבור החודש הבא. מוזמנים להתעדכן כאן באתר או לשלוח לנו הודעה בוואטסאפ.</p>
                 <a
-                  href={`https://wa.me/${whatsappNumber}?text=${encodeURIComponent("מעוניין לדעת מתי המשאית תהיה באזור שלי, אני גר ב")}`}
+                  href={`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessageTruckLocation)}`}
                   target="_blank"
                   rel="noreferrer"
                   className="mt-3 inline-flex min-h-10 items-center justify-center rounded-xl bg-[#D4AF37]/85 px-4 py-2 text-xs font-extrabold text-brand-black no-underline hover:bg-[#D4AF37]"

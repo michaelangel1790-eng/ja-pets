@@ -1,4 +1,4 @@
-import { whatsappMessage, whatsappNumber } from "@/data/site-data";
+import { whatsappLegalConsentLine, whatsappMessage, whatsappNumber } from "@/data/site-data";
 
 function WhatsAppGlyph({ className }: { className?: string }) {
   return (
@@ -20,8 +20,8 @@ export function FloatingWhatsApp() {
     >
       <span dir="rtl" className="flex select-none flex-col text-right">
         <span className="font-semibold leading-none tracking-wide text-[#e6c16a]">וואטסאפ</span>
-        <span className="mt-0.5 text-[9px] leading-3 text-neutral-300">
-          שליחת פנייה מהווה הסכמה לתנאים.
+        <span className="mt-0.5 max-w-[min(240px,78vw)] text-[8px] leading-snug text-neutral-300">
+          {whatsappLegalConsentLine}
         </span>
       </span>
       <WhatsAppGlyph className="h-[18px] w-[18px] shrink-0 text-white md:h-5 md:w-5" />
