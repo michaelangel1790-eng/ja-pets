@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { whatsappLegalConsentLine } from "@/data/site-data";
+import { WhatsappConsentNote } from "@/components/whatsapp-consent-note";
 
 const LEAD_ERROR_ID = "lead-form-error-summary";
 
@@ -308,16 +309,14 @@ ${whatsappLegalConsentLine}`;
             </div>
           </fieldset>
 
-          <div className="mt-3 flex flex-wrap items-center gap-3">
+          <div className="mt-4 flex flex-col gap-3">
             <button
               type="submit"
-              className="rounded-xl bg-gradient-to-b from-[#e8cf82] to-[#d4af37] px-5 py-2 text-sm font-extrabold text-brand-black shadow-[0_4px_14px_rgba(0,0,0,0.35)] hover:brightness-110"
+              className="w-fit rounded-xl bg-gradient-to-b from-[#e8cf82] to-[#d4af37] px-5 py-2.5 text-sm font-extrabold text-brand-black shadow-[0_4px_14px_rgba(0,0,0,0.35)] hover:brightness-110"
             >
               שליחת פרטים בוואטסאפ
             </button>
-            <p className="text-[11px] leading-5 text-neutral-300">
-              שליחת פנייה או קביעת תור מהווה הסכמה לתנאי השימוש, מדיניות הפרטיות ומדיניות הביטולים באתר.
-            </p>
+            <WhatsappConsentNote />
             {formError ? (
               <p
                 id={LEAD_ERROR_ID}
