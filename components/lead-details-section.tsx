@@ -357,8 +357,7 @@ ${whatsappLegalConsentLine}`;
                 />
                 <label htmlFor="lead-marketing" className="cursor-pointer leading-relaxed">
                   <span className="font-bold text-jacuzzi-gold">אני מאשר/ת</span> קבלת{" "}
-                  <span className="font-bold text-[#fde68a]">הודעות ועדכונים שיווקיים</span> בכפוף לדין (לא חובה לשליחת
-                  הטופס)
+                  <span className="font-bold text-[#fde68a]">הודעות ועדכונים שיווקיים</span> בכפוף לדין.
                 </label>
               </div>
             </div>
