@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { ExternalLink } from "@/components/external-link";
-import { whatsappLegalConsentLine } from "@/data/site-data";
 
 const LEAD_ERROR_ID = "lead-form-error-summary";
 
@@ -46,21 +45,23 @@ export function LeadDetailsSection() {
     }
 
     const whatsappLeadNumber = "972505501662";
-    const message = `היי,
+    const message = `היי JACUZZI,
 
-פרטים מהאתר — תיאום ב־JACUZZI.
+פרטים מהאתר — תיאום טיפוח.
 
-שם: ${fullName.trim()}
-טלפון: ${phone.trim()}
-אזור: ${area.trim()}
-כלב: ${dogType.trim() || "—"} · משקל: ${dogWeight.trim() || "—"}
-שירות: ${service}
-הערות: ${notes.trim() || "—"}
+▸ שם: ${fullName.trim()}
+▸ טלפון: ${phone.trim()}
+▸ אזור: ${area.trim()}
 
-אישורים באתר אושרו.
+▸ הכלב — גזע: ${dogType.trim() || "—"}
+▸ משקל: ${dogWeight.trim() || "—"}
+▸ שירות: ${service}
 
-—
-${whatsappLegalConsentLine}`;
+▸ הערות: ${notes.trim() || "—"}
+
+(אישורים נדרשים באתר סומנו לפני השליחה)
+
+תודה!`;
 
     const whatsappUrl = `https://wa.me/${whatsappLeadNumber}?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, "_blank", "noopener,noreferrer");
