@@ -203,7 +203,7 @@ export function LeadDetailsSection() {
                   aria-invalid={formError ? missingApprovals && !privacyApproved : undefined}
                 />
                 <label htmlFor="lead-privacy" className="cursor-pointer">
-                  אני מאשר/ת את{" "}
+                  קראתי ואני מאשר/ת את{" "}
                   <a
                     href="/privacy-policy"
                     target="_blank"
@@ -213,6 +213,27 @@ export function LeadDetailsSection() {
                   >
                     מדיניות הפרטיות
                   </a>
+                  ,{" "}
+                  <a
+                    href="/terms-of-use"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="!no-underline bg-transparent font-bold !text-jacuzzi-gold visited:!text-jacuzzi-gold hover:!text-jacuzzi-cream"
+                    style={{ color: "#fde68a", WebkitTextFillColor: "#fde68a", backgroundColor: "transparent", textDecoration: "none" }}
+                  >
+                    תנאי השימוש
+                  </a>{" "}
+                  ו{" "}
+                  <a
+                    href="/cancellation-policy"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="!no-underline bg-transparent font-bold !text-jacuzzi-gold visited:!text-jacuzzi-gold hover:!text-jacuzzi-cream"
+                    style={{ color: "#fde68a", WebkitTextFillColor: "#fde68a", backgroundColor: "transparent", textDecoration: "none" }}
+                  >
+                    מדיניות הביטולים
+                  </a>
+                  .
                 </label>
               </div>
               <div className="flex items-start gap-2">
@@ -285,6 +306,9 @@ export function LeadDetailsSection() {
             >
               שליחת פרטים בוואטסאפ
             </button>
+            <p className="text-[11px] leading-5 text-neutral-300">
+              שליחת פנייה או קביעת תור מהווה הסכמה לתנאי השימוש, מדיניות הפרטיות ומדיניות הביטולים באתר.
+            </p>
             {formError ? (
               <p
                 id={LEAD_ERROR_ID}

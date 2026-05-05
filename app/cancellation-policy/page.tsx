@@ -13,28 +13,32 @@ export default function CancellationPolicyPage() {
         <section className="section-shell space-y-5">
           <h1 className="section-title">מדיניות ביטולים</h1>
           <p className="text-sm leading-7 text-neutral-100 md:text-base">
-            המדיניות נועדה לאפשר שירות הוגן ללקוחות ולניהול יומן תורים יעיל.
+            המדיניות נועדה לאפשר שירות הוגן ללקוחות ולניהול יומן תורים יעיל. עצם קביעת התור, אישור התור, שליחת פרטים
+            או קבלת שירות מהווים הסכמה מלאה למדיניות זו.
           </p>
 
           <div className="space-y-2 text-sm leading-7 text-neutral-100 md:text-base">
             <h2 className="text-base font-bold text-jacuzzi-gold">תיאום ושינוי תור</h2>
             <p>ניתן לתאם תור בטלפון או בוואטסאפ.</p>
             <p>בקשות לשינוי מועד תור מומלץ להעביר מוקדם ככל האפשר, על מנת לאפשר זמינות ללקוחות נוספים.</p>
+            <p>שינוי מועד כפוף לזמינות בלבד ואינו מובטח.</p>
           </div>
 
           <div className="space-y-2 text-sm leading-7 text-neutral-100 md:text-base">
             <h2 className="text-base font-bold text-jacuzzi-gold">שריון תור ומקדמות</h2>
             <p>במקרים מסוימים, ייתכן ותידרש מקדמה לצורך שריון תור.</p>
             <p>
-              המקדמה אינה ניתנת להחזר בכל מקרה, לרבות ביטול תור, אי הגעה או מצב בו הכלב אינו מאפשר ביצוע טיפול.
+              המקדמה אינה ניתנת להחזר בכל מקרה, לרבות ביטול תור, אי הגעה, ביטול מאוחר, שינוי מועד מאוחר, מצב בו הכלב
+              אינו מאפשר ביצוע טיפול או כל סיבה אחרת.
             </p>
-            <p>עצם קביעת התור מהווה הסכמה למדיניות זו.</p>
+            <p>המקדמה מהווה דמי התחייבות לשריון הזמן ביומן.</p>
           </div>
 
           <div className="space-y-2 text-sm leading-7 text-neutral-100 md:text-base">
             <h2 className="text-base font-bold text-jacuzzi-gold">מדיניות ביטולים והגעה</h2>
             <ul className="list-disc space-y-1 pe-6">
               <li>ביטול תור יתבצע בהודעה מראש.</li>
+              <li>ביטול פחות מ-24 שעות מראש עשוי לגרור חיוב מלא או דמי ביקור/ביטול.</li>
               <li>אי הגעה או ביטול בהתראה קצרה עשויים לגרור חיוב בהתאם לשיקול דעת העסק.</li>
               <li>במקרה של איחור מצד הלקוח, ייתכן קיצור זמן הטיפול או ביטולו בהתאם ללו"ז.</li>
               <li>ביטול סמוך למועד התור עלול להשפיע על זמינות תורים עתידיים.</li>
@@ -55,6 +59,24 @@ export default function CancellationPolicyPage() {
           </div>
 
           <div className="space-y-2 text-sm leading-7 text-neutral-100 md:text-base">
+            <h2 className="text-base font-bold text-jacuzzi-gold">יציאת צוות ללקוח</h2>
+            <p>מרגע יציאת הצוות ללקוח, לא ניתן לבטל את התור ללא חיוב.</p>
+            <p>
+              אם הלקוח אינו זמין, אינו נמצא, אין חניה/גישה סבירה או לא ניתן לבצע שירות מסיבה התלויה בלקוח — ייגבו דמי
+              ביקור/ביטול.
+            </p>
+          </div>
+
+          <div className="space-y-2 text-sm leading-7 text-neutral-100 md:text-base">
+            <h2 className="text-base font-bold text-jacuzzi-gold">דמי ביקור / דמי ביטול</h2>
+            <p>דמי ביקור/ביטול מינימליים עומדים על 180 ₪.</p>
+            <p>
+              דמי ביקור/ביטול עשויים להיגבות במקרים של ביטול מאוחר, אי הגעה, אי אפשרות לבצע טיפול, חוסר חניה/גישה,
+              התנהגות כלב מסכנת או מידע מהותי שלא נמסר מראש.
+            </p>
+          </div>
+
+          <div className="space-y-2 text-sm leading-7 text-neutral-100 md:text-base">
             <h2 className="text-base font-bold text-jacuzzi-gold">אי הגעה / איחור</h2>
             <p>אי הגעה ללא הודעה מראש תיחשב כהפרת תור ועשויה לגרור חיוב.</p>
             <p>
@@ -68,7 +90,20 @@ export default function CancellationPolicyPage() {
               במקרים בהם הכלב אינו משתף פעולה, אינו מאפשר טיפול תקין או מהווה סיכון לצוות, ייתכן הפסקת טיפול.
             </p>
             <p>
-              במצבים אלו, ייגבה תשלום בגין דמי ביקור / דמי ביטול (בדרך כלל כ-180 ש"ח), בהתאם לשיקול דעת העסק.
+              במצבים אלו, ייגבה תשלום בגין דמי ביקור / דמי ביטול (בדרך כלל כ-180 ש"ח לפחות), בהתאם לשיקול דעת העסק.
+            </p>
+          </div>
+
+          <div className="space-y-2 text-sm leading-7 text-neutral-100 md:text-base">
+            <h2 className="text-base font-bold text-jacuzzi-gold">טיפולים מורכבים ופרעושים</h2>
+            <p>טיפולים מורכבים עשויים להימשך מספר מפגשים, וכל מפגש יחויב בנפרד.</p>
+            <p>במקרה של פרעושים/קרציות/טפילים ייתכן חיוב נוסף של 50–200 ₪ או הפסקת טיפול.</p>
+          </div>
+
+          <div className="space-y-2 text-sm leading-7 text-neutral-100 md:text-base">
+            <h2 className="text-base font-bold text-jacuzzi-gold">לקוחות עם ביטולים חוזרים</h2>
+            <p>
+              במקרה של ביטולים חוזרים, אי הגעה או שינויי תורים תדירים, הרשת רשאית לדרוש תשלום מראש או לסרב לשירות עתידי.
             </p>
           </div>
 
@@ -92,7 +127,28 @@ export default function CancellationPolicyPage() {
             <h2 className="text-base font-bold text-jacuzzi-gold">מדיניות החזרים</h2>
             <p>לא יינתן החזר כספי מכל סיבה שהיא, לרבות אי שביעות רצון.</p>
             <p>
-              תיקונים או התאמות יתבצעו במהלך זמן הטיפול בלבד, ולאחר סיום הטיפול לא תתאפשר דרישה לשינוי.
+              התשלום הוא עבור זמן העבודה, השירות, ההגעה והצוות — ולא עבור תוצאה אסתטית מובטחת. תיקונים או התאמות יתבצעו
+              במהלך זמן הטיפול בלבד.
+            </p>
+          </div>
+
+          <div className="space-y-2 text-sm leading-7 text-neutral-100 md:text-base">
+            <h2 className="text-base font-bold text-jacuzzi-gold">זמן דיווח על טענות</h2>
+            <p>טענות או פניות בנוגע לשירות יתקבלו עד 24 שעות ממועד סיום הטיפול בלבד.</p>
+          </div>
+
+          <div className="space-y-2 text-sm leading-7 text-neutral-100 md:text-base">
+            <h2 className="text-base font-bold text-jacuzzi-gold">ביטול או שינוי מצד הרשת</h2>
+            <p>
+              רשת JACUZZI רשאית לבטל, לדחות, לשנות או לקצר תור בכל עת לפי שיקול דעתה, ללא צורך בנימוק וללא פיצוי.
+            </p>
+          </div>
+
+          <div className="space-y-2 text-sm leading-7 text-neutral-100 md:text-base">
+            <h2 className="text-base font-bold text-jacuzzi-gold">כוח עליון ועיכובים</h2>
+            <p>
+              הרשת לא תישא באחריות לעיכובים, שינויי לו"ז או ביטולים הנובעים מנסיבות שאינן בשליטתה, לרבות פקקים, תאונות,
+              מזג אוויר, תקלות רכב או כל גורם בלתי צפוי אחר.
             </p>
           </div>
 

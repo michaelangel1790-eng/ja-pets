@@ -15,11 +15,14 @@ export function FloatingWhatsApp() {
       target="_blank"
       rel="noreferrer"
       dir="ltr"
-      className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] right-4 z-50 inline-flex max-w-[calc(100vw-2rem)] items-center gap-2 rounded-full border border-[#c9a227]/55 bg-[#0c1018]/88 px-3 py-2 text-[13px] shadow-[0_4px_20px_rgba(0,0,0,0.45)] backdrop-blur-md transition-[transform,box-shadow,background-color,border-color] duration-200 hover:border-[#e6c16a]/75 hover:bg-[#121826]/92 hover:shadow-[0_8px_28px_rgba(0,0,0,0.5)] active:scale-[0.97] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#e6c16a] md:bottom-20 md:right-5 md:px-3.5 md:py-2.5 md:text-sm"
+      className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] right-4 z-50 inline-flex max-w-[calc(100vw-2rem)] items-center gap-2 rounded-2xl border border-[#c9a227]/55 bg-[#0c1018]/88 px-3 py-2 text-[13px] shadow-[0_4px_20px_rgba(0,0,0,0.45)] backdrop-blur-md transition-[transform,box-shadow,background-color,border-color] duration-200 hover:border-[#e6c16a]/75 hover:bg-[#121826]/92 hover:shadow-[0_8px_28px_rgba(0,0,0,0.5)] active:scale-[0.97] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#e6c16a] md:bottom-20 md:right-5 md:px-3.5 md:py-2.5 md:text-sm"
       aria-label="שליחת הודעת וואטסאפ"
     >
-      <span dir="rtl" className="select-none font-semibold leading-none tracking-wide text-[#e6c16a]">
-        וואטסאפ
+      <span dir="rtl" className="flex select-none flex-col text-right">
+        <span className="font-semibold leading-none tracking-wide text-[#e6c16a]">וואטסאפ</span>
+        <span className="mt-0.5 text-[9px] leading-3 text-neutral-300">
+          שליחת פנייה מהווה הסכמה לתנאים.
+        </span>
       </span>
       <WhatsAppGlyph className="h-[18px] w-[18px] shrink-0 text-white md:h-5 md:w-5" />
     </a>

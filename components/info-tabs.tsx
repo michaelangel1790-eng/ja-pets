@@ -11,8 +11,8 @@ import { safeParseResponseJson } from "@/lib/safe-response-json";
 import { sortGalleryItemsLikeApi } from "@/lib/gallery-sort";
 import { GALLERY_ALLOWED_CAPTIONS } from "@/lib/gallery-captions";
 
-/** פחות תמונות בבקשה אחת — מפחית כשל JSON / timeout / גוף גדול מדי */
-const GALLERY_UPLOAD_CHUNK_SIZE = 3;
+/** העלאה סדרתית יציבה (תמונה-תמונה אוטומטית) כדי למנוע כשלים בהעלאה מרובה. */
+const GALLERY_UPLOAD_CHUNK_SIZE = 1;
 
 /** תוכן בלעדי ללשונית «מה כלול» — כרטיסים פרימיום */
 const INCLUDED_TAB_CARDS: { title: string; description: string; icon: string }[] = [
@@ -1109,7 +1109,7 @@ export function InfoTabs() {
           let { response, payload } = await runUploadAttempt(chunk);
           const chunkPayloadMalformed = shouldRetryAsSingleUpload(payload.error);
           if (chunk.length > 1 && chunkPayloadMalformed) {
-            setGalleryAdminMessage("זוהתה בעיית שרת בהעלאה מרובה, עובר להעלאה חכמה תמונה-תמונה...");
+            setGalleryAdminMessage("זוהתה בעיית שרת, ממשיך בהעלאה חכמה אוטומטית...");
             for (let i = 0; i < chunk.length; i += 1) {
               const singleResult = await runUploadAttempt([chunk[i]]);
               response = singleResult.response;
@@ -1747,6 +1747,9 @@ export function InfoTabs() {
                   >
                     קביעת תור בוואטסאפ
                   </a>
+                  <p className="max-w-[220px] text-[10px] leading-4 text-neutral-300">
+                    שליחת פנייה או קביעת תור מהווה הסכמה לתנאי השימוש, מדיניות הפרטיות ומדיניות הביטולים באתר.
+                  </p>
                 </div>
               </div>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -1953,6 +1956,9 @@ export function InfoTabs() {
                   >
                     קביעת תור בוואטסאפ
                   </a>
+                  <p className="max-w-[220px] text-[10px] leading-4 text-neutral-300">
+                    שליחת פנייה או קביעת תור מהווה הסכמה לתנאי השימוש, מדיניות הפרטיות ומדיניות הביטולים באתר.
+                  </p>
                 </div>
               </div>
 
@@ -2131,7 +2137,7 @@ export function InfoTabs() {
                     aria-required="true"
                   />
                   <label htmlFor="review-privacy-approve" className="cursor-pointer">
-                    אני מאשר/ת את{" "}
+                    קראתי ואני מאשר/ת את{" "}
                     <a
                       href="/privacy-policy"
                       target="_blank"
@@ -2140,6 +2146,25 @@ export function InfoTabs() {
                     >
                       מדיניות הפרטיות
                     </a>
+                    ,{" "}
+                    <a
+                      href="/terms-of-use"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="font-bold text-cyan-200 underline underline-offset-2 hover:text-cyan-100"
+                    >
+                      תנאי השימוש
+                    </a>{" "}
+                    ו{" "}
+                    <a
+                      href="/cancellation-policy"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="font-bold text-cyan-200 underline underline-offset-2 hover:text-cyan-100"
+                    >
+                      מדיניות הביטולים
+                    </a>
+                    .
                   </label>
                 </div>
                 <div className="mt-3 flex flex-wrap items-center gap-3">
@@ -2918,6 +2943,9 @@ export function InfoTabs() {
                 >
                   שליחת הודעה בוואטסאפ
                 </a>
+                <p className="mt-2 text-[10px] leading-4 text-neutral-300">
+                  שליחת פנייה או קביעת תור מהווה הסכמה לתנאי השימוש, מדיניות הפרטיות ומדיניות הביטולים באתר.
+                </p>
                 <div className="mt-3 flex flex-wrap items-center gap-2">
                   <input
                     type="password"
@@ -3041,6 +3069,9 @@ export function InfoTabs() {
                   >
                     קביעת תור בוואטסאפ
                   </a>
+                  <p className="max-w-[220px] text-[10px] leading-4 text-neutral-300">
+                    שליחת פנייה או קביעת תור מהווה הסכמה לתנאי השימוש, מדיניות הפרטיות ומדיניות הביטולים באתר.
+                  </p>
                 </div>
               </div>
               <div className="space-y-2">
