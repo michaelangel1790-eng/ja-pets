@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { whatsappLegalConsentLine } from "@/data/site-data";
-import { WhatsappConsentNote } from "@/components/whatsapp-consent-note";
 
 const LEAD_ERROR_ID = "lead-form-error-summary";
 
@@ -47,27 +46,24 @@ export function LeadDetailsSection() {
 
     const whatsappLeadNumber = "972505501662";
     const message = `היי,
-אשמח לתאם שירות ב־JACUZZI — השארתי פרטים דרך האתר.
 
-פרטי לקוח
-שם מלא: ${fullName.trim()}
+השארתי פרטים דרך האתר — אשמח לתיאום ב־JACUZZI.
+
+פרטי קשר
+שם: ${fullName.trim()}
 טלפון: ${phone.trim()}
-כתובת: —
+אזור / עיר: ${area.trim()}
 
 פרטי הכלב
-שם הכלב: —
-גזע: ${dogType.trim() || "—"}
-גיל: —
-משקל משוער: ${dogWeight.trim() || "—"}
+גזע / סוג: ${dogType.trim() || "—"}
+משקל: ${dogWeight.trim() || "—"}
 
-אזור מגורים: ${area.trim()}
-מסלול מועדף: פלטינום / פרמיום (נא לציין)
+שירות מבוקש: ${service}
+הערות: ${notes.trim() || "—"}
 
-סוג השירות המבוקש: ${service}
-הערות נוספות: ${notes.trim() || "—"}
+אישורים בסימון באתר: פרטיות · תנאי שימוש · ביטולים · שיווק (לפי מה שסימנתי).
 
-אישורים (סומן באתר): מדיניות פרטיות, תנאי שימוש, מדיניות ביטולים, עדכונים שיווקיים לפי הסימון.
-
+—
 ${whatsappLegalConsentLine}`;
 
     const whatsappUrl = `https://wa.me/${whatsappLeadNumber}?text=${encodeURIComponent(message)}`;
@@ -309,14 +305,13 @@ ${whatsappLegalConsentLine}`;
             </div>
           </fieldset>
 
-          <div className="mt-4 flex flex-col gap-3">
+          <div className="mt-4 flex flex-wrap items-center gap-3">
             <button
               type="submit"
-              className="w-fit rounded-xl bg-gradient-to-b from-[#e8cf82] to-[#d4af37] px-5 py-2.5 text-sm font-extrabold text-brand-black shadow-[0_4px_14px_rgba(0,0,0,0.35)] hover:brightness-110"
+              className="rounded-xl bg-gradient-to-b from-[#e8cf82] to-[#d4af37] px-5 py-2 text-sm font-extrabold text-brand-black shadow-[0_4px_14px_rgba(0,0,0,0.35)] hover:brightness-110"
             >
               שליחת פרטים בוואטסאפ
             </button>
-            <WhatsappConsentNote />
             {formError ? (
               <p
                 id={LEAD_ERROR_ID}

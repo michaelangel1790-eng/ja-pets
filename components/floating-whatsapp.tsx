@@ -1,4 +1,4 @@
-import { whatsappLegalConsentLine, whatsappMessage, whatsappNumber } from "@/data/site-data";
+import { whatsappFabConsentShort, whatsappMessage, whatsappNumber } from "@/data/site-data";
 
 function WhatsAppGlyph({ className }: { className?: string }) {
   return (
@@ -15,21 +15,16 @@ export function FloatingWhatsApp() {
       target="_blank"
       rel="noreferrer"
       dir="ltr"
-      className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] right-4 z-50 flex max-w-[min(20rem,calc(100vw-2rem))] items-start gap-2.5 rounded-2xl border border-[#c9a227]/50 bg-[#0c1018]/92 px-3 py-2.5 shadow-[0_8px_28px_rgba(0,0,0,0.5)] backdrop-blur-md transition-[transform,box-shadow,background-color,border-color] duration-200 hover:border-[#e6c16a]/70 hover:bg-[#121826]/95 hover:shadow-[0_12px_36px_rgba(0,0,0,0.55)] active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#e6c16a] md:bottom-20 md:right-5 md:gap-3 md:px-3.5 md:py-3"
-      aria-label={`שליחת הודעת וואטסאפ לקביעת תור — ${whatsappLegalConsentLine}`}
+      className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] right-4 z-50 inline-flex max-w-[calc(100vw-2rem)] items-center gap-2 rounded-full border border-[#c9a227]/55 bg-[#0c1018]/88 px-3 py-2 text-[13px] shadow-[0_4px_20px_rgba(0,0,0,0.45)] backdrop-blur-md transition-[transform,box-shadow,background-color,border-color] duration-200 hover:border-[#e6c16a]/75 hover:bg-[#121826]/92 hover:shadow-[0_8px_28px_rgba(0,0,0,0.5)] active:scale-[0.97] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#e6c16a] md:bottom-20 md:right-5 md:px-3.5 md:py-2.5 md:text-sm"
+      aria-label={`שליחת הודעת וואטסאפ — ${whatsappFabConsentShort}`}
     >
-      <span
-        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[#d4af37]/35 bg-[#d4af37]/12 shadow-inner"
-        aria-hidden
-      >
-        <WhatsAppGlyph className="h-[22px] w-[22px] text-[#e6c16a] md:h-6 md:w-6" />
-      </span>
-      <span dir="rtl" className="flex min-w-0 flex-1 select-none flex-col gap-1 text-right">
-        <span className="text-sm font-bold leading-tight tracking-wide text-[#fde68a]">קביעת תור בוואטסאפ</span>
-        <span className="text-[10px] leading-snug text-neutral-300/95 md:text-[11px] md:leading-relaxed">
-          {whatsappLegalConsentLine}
+      <span dir="rtl" className="flex max-w-[min(11.5rem,46vw)] flex-col text-right">
+        <span className="select-none font-semibold leading-none tracking-wide text-[#e6c16a]">וואטסאפ</span>
+        <span className="mt-1 select-none text-[9px] leading-snug text-neutral-300 md:text-[10px] md:leading-relaxed">
+          {whatsappFabConsentShort}
         </span>
       </span>
+      <WhatsAppGlyph className="h-[18px] w-[18px] shrink-0 text-white md:h-5 md:w-5" />
     </a>
   );
 }

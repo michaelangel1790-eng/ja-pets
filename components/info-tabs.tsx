@@ -19,7 +19,6 @@ import {
 import { safeParseResponseJson } from "@/lib/safe-response-json";
 import { sortGalleryItemsLikeApi } from "@/lib/gallery-sort";
 import { GALLERY_ALLOWED_CAPTIONS } from "@/lib/gallery-captions";
-import { WhatsappConsentNote } from "@/components/whatsapp-consent-note";
 
 /** העלאה סדרתית יציבה (תמונה-תמונה אוטומטית) כדי למנוע כשלים בהעלאה מרובה. */
 const GALLERY_UPLOAD_CHUNK_SIZE = 1;
@@ -1721,22 +1720,21 @@ export function InfoTabs() {
                   </article>
                 ))}
               </div>
-              <div className="flex flex-col gap-3">
-                <a
-                  href={`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="!no-underline inline-flex min-h-12 w-fit items-center justify-center rounded-xl border border-[#D4AF37]/35 bg-[#D4AF37]/12 px-6 py-3 text-center text-sm font-extrabold !text-yellow-100 shadow-[0_8px_22px_rgba(0,0,0,0.28)] transition hover:border-[#D4AF37]/50 hover:bg-[#D4AF37]/18 visited:!text-yellow-100 hover:!text-white focus:!text-white active:!text-white"
-                  style={{
-                    WebkitTapHighlightColor: "transparent",
-                    textDecoration: "none"
-                  }}
-                >
-                  שליחת הודעה לוואטסאפ לקביעת תור
-                </a>
-                <WhatsappConsentNote />
-                <p className="text-xs text-neutral-200">ללקויי שמיעה: ניתן לבצע תיאום מלא גם בוואטסאפ, ללא שיחה טלפונית.</p>
-              </div>
+              <a
+                href={`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`}
+                target="_blank"
+                rel="noreferrer"
+                className="!no-underline inline-flex min-h-12 items-center justify-center rounded-xl bg-transparent px-6 py-3 text-center text-sm font-extrabold !text-yellow-200 visited:!text-yellow-200 hover:!text-yellow-100 focus:!text-yellow-100 active:!text-yellow-100"
+                style={{
+                  WebkitTapHighlightColor: "transparent",
+                  color: "#fde047",
+                  WebkitTextFillColor: "#fde047",
+                  textDecoration: "none"
+                }}
+              >
+                שליחת הודעה לוואטסאפ לקביעת תור
+              </a>
+              <p className="text-xs text-neutral-200">ללקויי שמיעה: ניתן לבצע תיאום מלא גם בוואטסאפ, ללא שיחה טלפונית.</p>
             </div>
           ) : null}
 
@@ -1758,7 +1756,6 @@ export function InfoTabs() {
                   >
                     קביעת תור בוואטסאפ
                   </a>
-                  <WhatsappConsentNote tight />
                 </div>
               </div>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -1965,7 +1962,6 @@ export function InfoTabs() {
                   >
                     קביעת תור בוואטסאפ
                   </a>
-                  <WhatsappConsentNote tight />
                 </div>
               </div>
 
@@ -2269,18 +2265,17 @@ export function InfoTabs() {
                   כאן תוכלו לראות תמונות אמיתיות של תספורות, דילולים וטיפוחים שבוצעו אצלנו - ללא פילטרים וללא קיצורי דרך.
                 </p>
               </div>
-              <div className="rounded-xl border border-[#d4af37]/22 bg-black/25 px-3 py-3 text-xs text-neutral-200 md:px-4">
+              <div className="text-xs text-neutral-200">
                 <span>רוצים גם תוצאה כזו? </span>
                 <a
                   href={`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessageGallery)}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="mx-1 inline-flex items-center rounded-lg bg-[#D4AF37]/15 px-2 py-0.5 text-xs font-extrabold text-[#F1D27A] no-underline ring-1 ring-[#D4AF37]/35 transition hover:bg-[#D4AF37]/25 hover:text-white active:scale-[0.98]"
+                  className="mx-1 inline-flex items-center bg-transparent px-0 py-0 text-xs font-extrabold text-[#D4AF37] underline decoration-[#D4AF37]/70 underline-offset-2 transition hover:text-[#E7C870] hover:decoration-[#E7C870] active:scale-[0.98]"
                 >
                   שלחו לנו הודעה בוואטסאפ
                 </a>
                 <span>עם פרטים ותמונה של הכלב, ונחזור אליכם עם התאמה והצעת מחיר.</span>
-                <WhatsappConsentNote className="mt-3 border-[#d4af37]/18 bg-black/30" />
               </div>
               <p className="text-xs text-neutral-200">
                 רוצים להוסיף תמונת לפני/אחרי? בקשו מהספר או הספרית לצלם לפני תחילת הטיפול ולאחר הסיום.
@@ -2951,7 +2946,6 @@ export function InfoTabs() {
                 >
                   שליחת הודעה בוואטסאפ
                 </a>
-                <WhatsappConsentNote className="mt-2" />
                 <div className="mt-3 flex flex-wrap items-center gap-2">
                   <input
                     type="password"
@@ -3075,7 +3069,6 @@ export function InfoTabs() {
                   >
                     קביעת תור בוואטסאפ
                   </a>
-                  <WhatsappConsentNote tight />
                 </div>
               </div>
               <div className="space-y-2">
@@ -3110,24 +3103,18 @@ export function InfoTabs() {
                   ללקויי שמיעה: ניתן לבצע תיאום מלא בוואטסאפ ללא צורך בשיחה.
                 </p>
               </div>
-              <div className="flex min-h-[10rem] flex-col gap-3">
-                <a
-                  href={`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="!no-underline flex min-h-[10rem] flex-1 flex-col items-center justify-center gap-3 rounded-2xl border border-[#D4AF37]/40 bg-gradient-to-br from-[#D4AF37]/22 via-[#0a1628]/50 to-black/55 px-5 py-6 text-center shadow-[0_14px_36px_rgba(0,0,0,0.38)] ring-1 ring-[#d4af37]/15 transition hover:border-[#D4AF37]/55 hover:from-[#D4AF37]/28 hover:shadow-[0_18px_44px_rgba(0,0,0,0.45)]"
-                  style={{ color: "#fde68a", WebkitTextFillColor: "#fde68a", textDecoration: "none" }}
-                >
-                  <span className="rounded-full border border-[#d4af37]/35 bg-black/35 px-4 py-1 text-[11px] font-bold text-[#fde68a]">
-                    צ׳אט מהיר
-                  </span>
-                  <span className="text-lg font-bold text-yellow-50">וואטסאפ — הכי מהיר</span>
-                  <span className="max-w-[17rem] text-sm font-semibold leading-relaxed text-yellow-100/95">
-                    שלחו פרטים ותמונה של הכלב לקביעת תור
-                  </span>
-                </a>
-                <WhatsappConsentNote tight className="w-full shrink-0" />
-              </div>
+              <a
+                href={`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`}
+                target="_blank"
+                rel="noreferrer"
+                className="!no-underline flex min-h-[10rem] flex-col items-center justify-center gap-2 rounded-2xl border border-[#D4AF37]/35 bg-gradient-to-br from-[#D4AF37]/18 to-black/40 px-5 py-6 text-center shadow-[0_14px_36px_rgba(0,0,0,0.35)] transition hover:border-[#D4AF37]/50 hover:from-[#D4AF37]/26"
+                style={{ color: "#fde68a", WebkitTextFillColor: "#fde68a", textDecoration: "none" }}
+              >
+                <span className="text-sm font-bold text-yellow-100">וואטסאפ - הכי מהיר</span>
+                <span className="max-w-[16rem] text-base font-extrabold !text-yellow-100 visited:!text-yellow-100 hover:!text-yellow-50">
+                  שלחו פרטים ותמונה של הכלב לקביעת תור
+                </span>
+              </a>
             </div>
           ) : null}
         </div>
