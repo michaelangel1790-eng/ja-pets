@@ -323,13 +323,14 @@ html.a11y-cursor-large body * {
 }
 
 footer[aria-label*="קישורים משפטיים"] a {
-  color: #d4af37 !important;
+  /* בהיר יותר מ־#d4af37 לניגודיות AA על רקע כהה */
+  color: #f0d78c !important;
   text-decoration: none !important;
   transition: color 0.15s ease, filter 0.15s ease;
 }
 
 footer[aria-label*="קישורים משפטיים"] a:visited {
-  color: #d4af37 !important;
+  color: #f0d78c !important;
 }
 
 footer[aria-label*="קישורים משפטיים"] a:hover {
@@ -356,7 +357,8 @@ footer[aria-label*="קישורים משפטיים"] a:hover {
 .section-subtitle {
   margin-top: 0.5rem;
   font-size: 0.875rem;
-  color: var(--jacuzzi-body-muted);
+  /* מעט בהיר יותר מ־--jacuzzi-body-muted לניגודיות על רקע כהה */
+  color: #e8f2fb;
 }
 
 /* לשוניות: גלילה אופקית בלי סרגל לבן בולט (נשמר עיוּון מקלדת/מגע) */
@@ -392,9 +394,9 @@ main > section,
 .nav-link {
   border-radius: 9999px;
   padding: 0.4rem 0.75rem;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 700;
-  color: #f9e7a3;
+  color: #fff3c4;
   border: 1px solid rgba(255, 220, 120, 0.32);
   background-color: transparent;
 }
@@ -429,7 +431,8 @@ a.nav-link:active {
 @media (max-width: 640px) {
   .nav-link {
     padding: 0.3rem 0.45rem;
-    font-size: 0.65rem;
+    /* מינימום ~12px לקריאות ולניגודיות במובייל */
+    font-size: 0.75rem;
   }
 }
 

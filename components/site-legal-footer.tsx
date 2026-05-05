@@ -26,7 +26,7 @@ export function SiteLegalFooter() {
                   ,
                 </span>
               ) : null}
-              <Link href={link.href} className="font-semibold">
+              <Link href={link.href} className="font-semibold" aria-label={`${link.label} — קישור בתחתית האתר`}>
                 {link.label}
               </Link>
             </span>
