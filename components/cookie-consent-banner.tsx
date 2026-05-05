@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import {
+  clearAllConsentStorageKeys,
   COOKIE_LS_ANALYTICS,
   COOKIE_LS_CONSENT,
   COOKIE_LS_MARKETING,
@@ -86,10 +87,14 @@ function persist(
   analytics: boolean,
   marketing: boolean
 ): void {
-  localStorage.setItem(COOKIE_LS_CONSENT, mode);
-  localStorage.setItem(COOKIE_LS_ANALYTICS, analytics ? "true" : "false");
-  localStorage.setItem(COOKIE_LS_MARKETING, marketing ? "true" : "false");
-  dispatchConsentUpdated();
+  try {
+    localStorage.setItem(COOKIE_LS_CONSENT, mode);
+    localStorage.setItem(COOKIE_LS_ANALYTICS, analytics ? "true" : "false");
+    localStorage.setItem(COOKIE_LS_MARKETING, marketing ? "true" : "false");
+    dispatchConsentUpdated();
+  } catch {
+    /* localStorage מלא / חסום — לא מפילים את העמוד */
+  }
 }
 
 export function CookieConsentBanner() {
@@ -121,9 +126,7 @@ export function CookieConsentBanner() {
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
       if (params.get("resetCookieConsent") === "1") {
-        localStorage.removeItem(COOKIE_LS_CONSENT);
-        localStorage.removeItem(COOKIE_LS_ANALYTICS);
-        localStorage.removeItem(COOKIE_LS_MARKETING);
+        clearAllConsentStorageKeys();
         params.delete("resetCookieConsent");
         const query = params.toString();
         const next = `${window.location.pathname}${query ? `?${query}` : ""}${window.location.hash}`;
@@ -222,7 +225,7 @@ export function CookieConsentBanner() {
         <div
           role="region"
           aria-label="הסכמה לשימוש בעוגיות"
-          className="fixed inset-x-0 bottom-0 z-[42] px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2 md:px-6 md:pb-5"
+          className="fixed inset-x-0 bottom-0 z-[10050] px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-2 md:px-6 md:pb-5"
         >
           <div className="mx-auto max-w-4xl overflow-hidden rounded-[1.35rem] border border-[#d4af37]/25 bg-[#0a101c]/92 shadow-[0_-12px_48px_rgba(0,0,0,0.55),0_0_0_1px_rgba(255,255,255,0.04)_inset] backdrop-blur-xl md:rounded-3xl">
             <div className="h-1 bg-gradient-to-l from-[#8b6914] via-[#e8cf82] to-[#c9a227]" aria-hidden />
@@ -272,7 +275,7 @@ export function CookieConsentBanner() {
 
       {showSettings ? (
         <div
-          className="fixed inset-0 z-[43] flex items-end justify-center bg-[#050810]/72 p-0 backdrop-blur-[3px] sm:items-center sm:p-4 md:p-6"
+          className="fixed inset-0 z-[10060] flex items-end justify-center bg-[#050810]/72 p-0 backdrop-blur-[3px] sm:items-center sm:p-4 md:p-6"
           aria-hidden={false}
           onMouseDown={(e) => {
             if (e.target === e.currentTarget) closeSettings();
