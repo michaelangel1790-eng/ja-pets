@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ExternalLink } from "@/components/external-link";
 import { PageWithChrome } from "@/components/page-with-chrome";
 
 export const metadata: Metadata = {
@@ -8,10 +9,12 @@ export const metadata: Metadata = {
 
 export default function PrivacyPolicyPage() {
   return (
-    <PageWithChrome>
+    <PageWithChrome mainHeadingId="jacuzzi-page-h1">
       <div className="mx-auto max-w-4xl px-4 pb-24 pt-10 md:px-6">
         <section className="section-shell space-y-5">
-          <h1 className="section-title">מדיניות פרטיות</h1>
+          <h1 id="jacuzzi-page-h1" className="section-title">
+            מדיניות פרטיות
+          </h1>
           <p className="text-sm leading-7 text-neutral-100 md:text-base">
             רשת JACUZZI מכבדת את פרטיות לקוחותיה והגולשים באתר, ורואה חשיבות רבה בשמירה על המידע האישי הנמסר לה.
           </p>
@@ -151,15 +154,13 @@ export default function PrivacyPolicyPage() {
             </p>
             <p>
               וואטסאפ:{" "}
-              <a
+              <ExternalLink
                 className="font-semibold text-jacuzzi-gold underline underline-offset-4 hover:text-jacuzzi-cream"
                 href="https://wa.me/972505501662"
-                target="_blank"
-                rel="noreferrer"
                 aria-label="פתיחת וואטסאפ ליצירת קשר"
               >
                 050-550-1662
-              </a>
+              </ExternalLink>
             </p>
           </div>
 

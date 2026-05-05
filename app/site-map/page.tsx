@@ -20,9 +20,11 @@ const routes = [
 
 export default function SiteMapPage() {
   return (
-    <PageWithChrome>
+    <PageWithChrome mainHeadingId="jacuzzi-page-h1">
       <section className="section-shell mx-auto max-w-3xl px-4 py-8 md:px-6">
-        <h1 className="section-title">מפת אתר</h1>
+        <h1 id="jacuzzi-page-h1" className="section-title">
+          מפת אתר
+        </h1>
         <p className="section-subtitle mt-2">
           רשימת דפים עיקריים באתר לניווט מהיר - בהתאם להנחיות נגישות לחשיפת מבנה האתר.
         </p>

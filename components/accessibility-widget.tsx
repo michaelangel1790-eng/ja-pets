@@ -966,7 +966,7 @@ export function AccessibilityWidget() {
           aria-haspopup="menu"
           title="תפריט נגישות - גרירה להזזה; איפוס מיקום מתפריט הנגישות"
           aria-expanded={isOpen}
-          aria-controls={MENU_ID}
+          aria-controls={isOpen ? MENU_ID : undefined}
           onPointerDown={handleFabPointerDown}
           onPointerMove={handleFabPointerMove}
           onPointerUp={handleFabPointerUp}

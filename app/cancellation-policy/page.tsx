@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ExternalLink } from "@/components/external-link";
 import { PageWithChrome } from "@/components/page-with-chrome";
 
 export const metadata: Metadata = {
@@ -8,10 +9,12 @@ export const metadata: Metadata = {
 
 export default function CancellationPolicyPage() {
   return (
-    <PageWithChrome>
+    <PageWithChrome mainHeadingId="jacuzzi-page-h1">
       <div className="mx-auto max-w-4xl px-4 pb-24 pt-10 md:px-6">
         <section className="section-shell space-y-5">
-          <h1 className="section-title">מדיניות ביטולים</h1>
+          <h1 id="jacuzzi-page-h1" className="section-title">
+            מדיניות ביטולים
+          </h1>
           <p className="text-sm leading-7 text-neutral-100 md:text-base">
             המדיניות נועדה לאפשר שירות הוגן ללקוחות ולניהול יומן תורים יעיל. עצם קביעת התור, אישור התור, שליחת פרטים
             או קבלת שירות מהווים הסכמה מלאה למדיניות זו.
@@ -160,15 +163,13 @@ export default function CancellationPolicyPage() {
                 *5297
               </a>{" "}
               או וואטסאפ{" "}
-              <a
+              <ExternalLink
                 className="font-semibold text-jacuzzi-gold underline underline-offset-4 hover:text-jacuzzi-cream"
                 href="https://wa.me/972505501662"
-                target="_blank"
-                rel="noreferrer"
                 aria-label="פתיחת וואטסאפ לשינוי או ביטול תור"
               >
                 050-550-1662
-              </a>
+              </ExternalLink>
               .
             </p>
           </div>

@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 export default function LeadDetailsPage() {
   return (
-    <PageWithChrome>
+    <PageWithChrome mainHeadingId="lead-heading">
       <LeadDetailsSection />
     </PageWithChrome>
   );

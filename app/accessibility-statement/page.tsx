@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 export default function AccessibilityStatementPage() {
   return (
-    <PageWithChrome>
+    <PageWithChrome mainHeadingId="jacuzzi-page-h1">
       <AccessibilityStatementClient />
     </PageWithChrome>
   );

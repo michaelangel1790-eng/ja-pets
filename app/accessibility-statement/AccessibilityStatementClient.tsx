@@ -1,8 +1,12 @@
+import { ExternalLink } from "@/components/external-link";
+
 export function AccessibilityStatementClient() {
   return (
     <div dir="rtl" className="mx-auto max-w-4xl px-4 pb-24 pt-10 md:px-6">
       <section className="section-shell space-y-5">
-        <h1 className="section-title">הצהרת נגישות</h1>
+        <h1 id="jacuzzi-page-h1" className="section-title">
+          הצהרת נגישות
+        </h1>
 
         <section className="space-y-2 border-t border-white/10 pt-5 text-sm leading-7 text-neutral-100 md:text-base">
           <h2 className="font-bold text-jacuzzi-gold">פתיח</h2>
@@ -92,15 +96,13 @@ export function AccessibilityStatementClient() {
           </p>
           <p>
             וואטסאפ:{" "}
-            <a
+            <ExternalLink
               aria-label="פתיחת וואטסאפ לפניות נגישות"
               className="font-semibold text-jacuzzi-gold underline underline-offset-4 hover:text-jacuzzi-cream"
               href="https://wa.me/972505501662"
-              target="_blank"
-              rel="noreferrer"
             >
               050-550-1662
-            </a>
+            </ExternalLink>
           </p>
           <p>זמן מענה לפניות: עד 7 ימי עסקים</p>
         </section>

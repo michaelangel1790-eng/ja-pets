@@ -8,10 +8,12 @@ export const metadata: Metadata = {
 
 export default function TermsOfUsePage() {
   return (
-    <PageWithChrome>
+    <PageWithChrome mainHeadingId="jacuzzi-page-h1">
       <div className="mx-auto max-w-4xl px-4 pb-24 pt-10 md:px-6">
         <section className="section-shell space-y-5">
-          <h1 className="section-title">תנאי שימוש</h1>
+          <h1 id="jacuzzi-page-h1" className="section-title">
+            תנאי שימוש
+          </h1>
           <p className="text-sm leading-7 text-neutral-100 md:text-base">
             השימוש באתר, יצירת קשר עם העסק, קביעת תור או קבלת שירות מהווים הסכמה מלאה לתנאים אלו, למדיניות הפרטיות
             ולמדיניות הביטולים של רשת JACUZZI, גם ללא חתימה פיזית.

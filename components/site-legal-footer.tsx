@@ -13,6 +13,7 @@ const links = [
 export function SiteLegalFooter() {
   return (
     <footer
+      role="contentinfo"
       aria-label="קישורים משפטיים ומהירים בתחתית האתר"
       className="border-t border-amber-900/40 bg-gradient-to-b from-black to-black/95 py-3.5 text-center text-[13px] md:py-4 md:text-sm"
     >
