@@ -1775,8 +1775,12 @@ export function InfoTabs() {
               aria-labelledby="tab-about"
               className="mx-auto max-w-4xl space-y-6 text-right text-[0.98rem] leading-8 text-neutral-100 md:space-y-8 md:text-[1.05rem] md:leading-9"
             >
-              <h3 className="text-xl font-extrabold text-cyan-200 md:text-2xl">ברוכים הבאים לרשת JACUZZI</h3>
-              <p className="text-lg font-bold text-pink-200 md:text-xl">ספא ומספרת כלבים מקצועית ברמה גבוהה</p>
+              <h3 className="m-0 space-y-2 text-xl font-extrabold text-cyan-200 md:text-2xl">
+                <span className="block">ברוכים הבאים לרשת JACUZZI</span>
+                <span className="block text-lg font-semibold text-pink-100 md:text-xl">
+                  ספא ומספרת כלבים מקצועית ברמה גבוהה
+                </span>
+              </h3>
 
               <section className="space-y-3 border-t border-white/10 pt-5">
                 <h3 className="text-base font-extrabold text-yellow-100 md:text-lg">ניסיון מוכח</h3>

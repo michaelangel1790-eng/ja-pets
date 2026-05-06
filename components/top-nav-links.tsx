@@ -15,6 +15,11 @@ export function TopNavLinks() {
           key={`${link.href}-${link.label}`}
           href={link.href}
           className="nav-link"
+          aria-label={
+            link.href === "/lead-details" || link.href === "/accessibility-statement"
+              ? `${link.label} — מהתפריט העליון`
+              : undefined
+          }
           onClick={(event) => {
             if (!link.tabId) return;
             if (typeof window === "undefined" || window.location.pathname !== "/") return;
