@@ -1394,8 +1394,14 @@ export function InfoTabs() {
         if (!response.ok) {
           throw new Error(payload.error || "עדכון הכיתוב נכשל");
         }
+        /** לא מחליפים את כל המערך — כדי לא לדרוס כיתובים שעוד לא נשמרו בתמונות אחרות */
         if (Array.isArray(payload.items)) {
-          setGalleryImages(payload.items);
+          const serverItem = payload.items.find((x) => x.id === id);
+          if (serverItem) {
+            setGalleryImages((prev) =>
+              prev.map((item) => (item.id === id ? { ...item, ...serverItem } : item))
+            );
+          }
         }
         setGalleryAdminMessage(
           typeof payload.message === "string" && payload.message.trim()
@@ -1403,7 +1409,12 @@ export function InfoTabs() {
             : "כיתוב התמונה עודכן"
         );
       } catch (error) {
-        setGalleryImages(snapshot);
+        const previousItem = snapshot.find((x) => x.id === id);
+        setGalleryImages((prev) =>
+          prev.map((item) =>
+            item.id === id && previousItem ? { ...item, caption: previousItem.caption } : item
+          )
+        );
         setGalleryAdminMessage(error instanceof Error ? error.message : "עדכון הכיתוב נכשל");
       } finally {
         setCaptionSavingId(null);
@@ -2459,10 +2470,6 @@ export function InfoTabs() {
                           e.stopPropagation();
                           void saveGalleryItemCaption(item.id, e.target.value);
                         }}
-                        onBlur={(e) => {
-                          e.stopPropagation();
-                          void saveGalleryItemCaption(item.id, e.target.value);
-                        }}
                         disabled={captionSavingId === item.id}
                         className="w-full cursor-pointer rounded-md border border-white/20 bg-neutral-900 px-1.5 py-1 text-[11px] text-white outline-none focus:ring-1 focus:ring-yellow-300/50 disabled:opacity-60"
                         aria-label={`כיתוב לתמונה ${item.treatmentName}`}
@@ -2706,10 +2713,6 @@ export function InfoTabs() {
                               <select
                                 value={currentGalleryItem.caption || ""}
                                 onChange={(e) => {
-                                  e.stopPropagation();
-                                  void saveGalleryItemCaption(currentGalleryItem.id, e.target.value);
-                                }}
-                                onBlur={(e) => {
                                   e.stopPropagation();
                                   void saveGalleryItemCaption(currentGalleryItem.id, e.target.value);
                                 }}
