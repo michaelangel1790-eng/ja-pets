@@ -3,11 +3,7 @@ import { mainLogoHeight, mainLogoSrc, mainLogoWidth } from "@/lib/site-images";
 
 export function Hero() {
   return (
-    <section
-      className="relative overflow-hidden px-6 pb-4 pt-10 text-white md:px-10 md:pt-12 lg:px-12 lg:pb-6 lg:pt-14"
-      dir="rtl"
-      lang="he"
-    >
+    <section className="relative overflow-hidden px-6 pb-4 pt-10 text-white md:px-10 md:pt-12 lg:px-12 lg:pb-6 lg:pt-14">
       <div aria-hidden className="pointer-events-none absolute inset-0 z-0">
         <span className="ambient-bubble ambient-bubble--md ambient-bubble--vivid" style={{ top: "12%", left: "9%", animationDelay: "-4s" }} />
         <span className="ambient-bubble ambient-bubble--lg ambient-bubble--glow ambient-bubble--vivid" style={{ top: "20%", right: "11%", animationDelay: "-10s" }} />
@@ -29,7 +25,7 @@ export function Hero() {
               id="jacuzzi-main-page-title"
               dir="rtl"
               lang="he"
-              className="mx-auto mt-5 max-w-[min(96vw,34rem)] text-center text-base font-semibold leading-snug tracking-wide text-neutral-100 [unicode-bidi:isolate] md:mt-7 md:text-xl md:leading-relaxed"
+              className="visually-hidden"
             >
               מספרת כלבים ניידת ומשאית טיפוח בירושלים
             </h1>
