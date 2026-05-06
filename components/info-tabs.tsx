@@ -1957,7 +1957,7 @@ export function InfoTabs() {
             </div>
 
           <div role="tabpanel" id="panel-testimonials" hidden={activeTab !== "testimonials"} aria-labelledby="tab-testimonials" className="space-y-4">
-              <p className="text-sm font-bold text-yellow-100">לקוחות משתפים על החוויה עם JACUZZI</p>
+              <h3 className="m-0 text-sm font-bold text-yellow-100">לקוחות משתפים על החוויה עם JACUZZI</h3>
               <div className="flex flex-wrap items-center gap-2">
                 <button
                   type="button"
@@ -3076,7 +3076,7 @@ export function InfoTabs() {
 
           <div role="tabpanel" id="panel-contact" hidden={activeTab !== "contact"} aria-labelledby="tab-contact" className="grid gap-4 md:grid-cols-2">
               <div className="rounded-2xl border border-[#D4AF37]/22 bg-gradient-to-br from-white/[0.07] to-transparent p-5 shadow-[0_12px_32px_rgba(0,0,0,0.24)]">
-                <p className="text-lg font-bold text-cyan-200">טלפונים</p>
+                <h3 className="m-0 text-lg font-bold text-cyan-200">טלפונים</h3>
                 <div className="mt-3 space-y-1.5 border-t border-white/10 pt-3">
                   <p className="text-lg font-semibold tracking-wide text-white">{phoneNumbers.main}</p>
                   <p className="text-lg font-semibold tracking-wide text-white">{phoneNumbers.mobileVan}</p>

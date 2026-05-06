@@ -359,7 +359,7 @@ function PageStructureDialog({
         </div>
         <ul className="max-h-[55vh] overflow-y-auto p-2 text-right" lang="he">
           {entries.length === 0 ? (
-            <li className="px-3 py-4 text-sm text-neutral-500">לא נמצאו כותרות בעמוד זה.</li>
+            <li className="px-3 py-4 text-sm text-neutral-600">לא נמצאו כותרות בעמוד זה.</li>
           ) : (
             entries.map((e) => (
               <li key={e.id}>
@@ -372,7 +372,7 @@ function PageStructureDialog({
                     onClose();
                   }}
                 >
-                  <span className="text-neutral-400">H{e.level}</span> {e.text}
+                  <span className="text-neutral-600">H{e.level}</span> {e.text}
                 </button>
               </li>
             ))
@@ -1007,7 +1007,7 @@ export function AccessibilityWidget() {
             >
               כלי נגישות
             </h2>
-            <p className="border-b border-neutral-100 px-2 pb-2 text-center text-xs leading-snug text-neutral-500">
+            <p className="border-b border-neutral-100 px-2 pb-2 text-center text-xs leading-snug text-neutral-600">
               התאמות לפי תקן נגישות ישראלי (ת״י 5568) והנחיות WCAG 2.x ברמת AA, ככל שהן חלות על אתר זה.
             </p>
             <MenuSectionTitle>מיקום כפתור הנגישות</MenuSectionTitle>
@@ -1509,7 +1509,7 @@ export function AccessibilityWidget() {
               </MenuIcon>
               <span className="min-w-0 flex-1">הקטן זום עמוד</span>
             </button>
-            <p className="px-2 pt-1 text-[11px] leading-snug text-neutral-500">
+            <p className="px-2 pt-1 text-[11px] leading-snug text-neutral-600">
               זום תוכן: {Math.round(settings.pageZoom * 100)}%
             </p>
             <button

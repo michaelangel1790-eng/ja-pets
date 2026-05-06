@@ -294,7 +294,8 @@ export function CookieConsentBanner() {
                 </button>
                 <Link
                   href="/privacy-policy"
-                  className="order-4 flex min-h-[44px] w-full items-center justify-center rounded-xl py-2.5 text-center text-sm font-semibold text-[var(--jacuzzi-gold,#e6c16a)] underline decoration-[#d4af37]/45 underline-offset-[5px] transition hover:text-[#fde68a] hover:decoration-[#e8cf82]/70 md:order-none md:inline-flex md:w-auto md:justify-end md:px-4 md:py-2.5"
+                  aria-label="מדיניות פרטיות — מבאנר העוגיות"
+                  className="order-4 flex min-h-[44px] w-full items-center justify-center rounded-xl py-2.5 text-center text-sm font-semibold text-[#fde68a] underline decoration-[#d4af37]/55 underline-offset-[5px] transition hover:text-white hover:decoration-[#fde68a]/80 md:order-none md:inline-flex md:w-auto md:justify-end md:px-4 md:py-2.5"
                 >
                   מדיניות פרטיות
                 </Link>
@@ -334,17 +335,17 @@ export function CookieConsentBanner() {
               <ul className="mt-6 space-y-3 text-sm">
                 <li className="rounded-2xl border border-white/[0.08] bg-gradient-to-br from-white/[0.07] to-transparent p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
                   <div className="flex items-start justify-between gap-3">
-                    <span className="font-semibold text-[var(--jacuzzi-gold,#e6c16a)]">חיוניות</span>
+                    <span className="font-semibold text-[#fde68a]">חיוניות</span>
                     <span className="shrink-0 rounded-full border border-[#d4af37]/35 bg-[#d4af37]/12 px-2.5 py-1 text-[11px] font-bold tracking-wide text-[#fde68a]">
                       תמיד פעיל
                     </span>
                   </div>
-                  <p className="mt-2.5 text-xs leading-relaxed text-neutral-400">{CAT_ESSENTIAL}</p>
+                  <p className="mt-2.5 text-xs leading-relaxed text-neutral-300">{CAT_ESSENTIAL}</p>
                 </li>
 
                 <li className="rounded-2xl border border-white/[0.08] bg-gradient-to-br from-white/[0.07] to-transparent p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
                   <div className="flex items-center justify-between gap-3">
-                    <span id={catAnalyticsLabelId} className="font-semibold text-[var(--jacuzzi-gold,#e6c16a)]">
+                    <span id={catAnalyticsLabelId} className="font-semibold text-[#fde68a]">
                       אנליטיקה
                     </span>
                     <ConsentSwitch
@@ -355,14 +356,14 @@ export function CookieConsentBanner() {
                       onToggle={() => setAnalyticsOn((v) => !v)}
                     />
                   </div>
-                  <p id={`${titleId}-analytics`} className="mt-2.5 text-xs leading-relaxed text-neutral-400">
+                  <p id={`${titleId}-analytics`} className="mt-2.5 text-xs leading-relaxed text-neutral-300">
                     {CAT_ANALYTICS}
                   </p>
                 </li>
 
                 <li className="rounded-2xl border border-white/[0.08] bg-gradient-to-br from-white/[0.07] to-transparent p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
                   <div className="flex items-center justify-between gap-3">
-                    <span id={catMarketingLabelId} className="font-semibold text-[var(--jacuzzi-gold,#e6c16a)]">
+                    <span id={catMarketingLabelId} className="font-semibold text-[#fde68a]">
                       פרסום ושיווק
                     </span>
                     <ConsentSwitch
@@ -373,7 +374,7 @@ export function CookieConsentBanner() {
                       onToggle={() => setMarketingOn((v) => !v)}
                     />
                   </div>
-                  <p id={`${titleId}-marketing`} className="mt-2.5 text-xs leading-relaxed text-neutral-400">
+                  <p id={`${titleId}-marketing`} className="mt-2.5 text-xs leading-relaxed text-neutral-300">
                     {CAT_MARKETING}
                   </p>
                 </li>
@@ -396,7 +397,8 @@ export function CookieConsentBanner() {
                 </button>
                 <Link
                   href="/privacy-policy"
-                  className="flex min-h-[44px] w-full items-center justify-center rounded-xl py-3 text-center text-sm font-semibold text-[var(--jacuzzi-gold,#e6c16a)] underline decoration-[#d4af37]/45 underline-offset-[5px] transition hover:text-[#fde68a] sm:order-3 sm:w-auto sm:px-4 sm:py-2.5"
+                  aria-label="מדיניות פרטיות — מחלון הגדרות העוגיות"
+                  className="flex min-h-[44px] w-full items-center justify-center rounded-xl py-3 text-center text-sm font-semibold text-[#fde68a] underline decoration-[#d4af37]/55 underline-offset-[5px] transition hover:text-white hover:decoration-[#fde68a]/80 sm:order-3 sm:w-auto sm:px-4 sm:py-2.5"
                   onClick={() => setShowSettings(false)}
                 >
                   מדיניות פרטיות
