@@ -1308,10 +1308,16 @@ export function InfoTabs() {
       return;
     }
 
+    /** מובילות ממיינות את התמונה לראש הרשימה — אם נשארים בעמוד 2+, הפריט \"נעלם\" מהמסך */
+    const galleryPageBeforeStar = galleryPage;
+
     setGalleryAdminMessage("");
     await enqueueGalleryWrite(async () => {
       const previousItems = galleryImagesRef.current;
       setFeaturedSavingId(id);
+      if (featured) {
+        setGalleryPage(1);
+      }
       setGalleryImages((prev) =>
         prev.map((item) => (item.id === id ? { ...item, featured } : item))
       );
@@ -1341,6 +1347,9 @@ export function InfoTabs() {
         setGalleryAdminMessage(payload.message?.trim() || "סימון הכוכב עודכן");
       } catch (error) {
         setGalleryImages(previousItems);
+        if (featured) {
+          setGalleryPage(galleryPageBeforeStar);
+        }
         setGalleryAdminMessage(error instanceof Error ? error.message : "עדכון סימון הכוכב נכשל");
       } finally {
         setFeaturedSavingId(null);
