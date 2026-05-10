@@ -22,8 +22,11 @@ import { resolveAdminSessionSecret } from "@/lib/admin-session-secret";
 import { sanitizeGalleryCaption } from "@/lib/gallery-captions";
 
 export const runtime = "nodejs";
-/** העלאות מרובות + סימון מים — מאריך timeout בפריסות שתומכות (למשל Vercel Pro) */
-export const maxDuration = 60;
+/**
+ * העלאות מרובות + דחיסת לוגו בשרת (sharp) — לוקח זמן לפי מספר התמונות.
+ * Vercel Pro: עד 300 שניות; בתוכנית חינמית המגבלה בדרך כלל 60 שניות.
+ */
+export const maxDuration = 300;
 
 const DATA_DIR = path.join(process.cwd(), "data");
 const GALLERY_AUDIT_LOG_FILE = path.join(DATA_DIR, "gallery-admin-audit.log");

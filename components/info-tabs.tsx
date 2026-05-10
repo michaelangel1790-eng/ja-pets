@@ -20,8 +20,7 @@ import { sortGalleryItemsLikeApi } from "@/lib/gallery-sort";
 import { GALLERY_ALLOWED_CAPTIONS } from "@/lib/gallery-captions";
 import { ExternalLink, WhatsAppExternalLink } from "@/components/external-link";
 
-/** העלאה סדרתית יציבה (תמונה-תמונה אוטומטית) כדי למנוע כשלים בהעלאה מרובה. */
-/** תואם ל־MAX_FILES_PER_UPLOAD בשרת — קבוצות של עד 100 תמונות לבקשה */
+/** תואם ל־MAX_FILES_PER_UPLOAD בשרת — קבוצות של עד 100 תמונות לבקשה (ללא הגבלת זמן בצד לקוח). */
 const GALLERY_UPLOAD_CHUNK_SIZE = 100;
 
 /** תוכן בלעדי ללשונית «מה כלול» — כרטיסים פרימיום */
@@ -51,6 +50,7 @@ function postGalleryFormWithProgress(
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.open("POST", "/api/gallery");
+    xhr.timeout = 0;
     xhr.setRequestHeader("x-admin-session", sessionToken);
     xhr.responseType = "text";
     xhr.onload = () => {
