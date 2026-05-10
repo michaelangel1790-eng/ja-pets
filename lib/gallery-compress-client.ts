@@ -3,7 +3,7 @@
  */
 import imageCompression from "browser-image-compression";
 
-const MAX_FILES_PER_UPLOAD = 10;
+const MAX_FILES_PER_UPLOAD = 100;
 /** מאפשרים קבצים גדולים יותר לפני דחיסה; בפועל יועלו אחרי דחיסה ל-WebP. */
 const MAX_ORIGINAL_BYTES = 20 * 1024 * 1024;
 const MAX_SIDE = 1200;

@@ -21,7 +21,8 @@ import { GALLERY_ALLOWED_CAPTIONS } from "@/lib/gallery-captions";
 import { ExternalLink, WhatsAppExternalLink } from "@/components/external-link";
 
 /** העלאה סדרתית יציבה (תמונה-תמונה אוטומטית) כדי למנוע כשלים בהעלאה מרובה. */
-const GALLERY_UPLOAD_CHUNK_SIZE = 1;
+/** תואם ל־MAX_FILES_PER_UPLOAD בשרת — קבוצות של עד 100 תמונות לבקשה */
+const GALLERY_UPLOAD_CHUNK_SIZE = 100;
 
 /** תוכן בלעדי ללשונית «מה כלול» — כרטיסים פרימיום */
 const INCLUDED_TAB_CARDS: { title: string; description: string; icon: string }[] = [
