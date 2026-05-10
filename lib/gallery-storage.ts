@@ -625,6 +625,92 @@ export async function removeGalleryImageFile(imageRef: string): Promise<void> {
   }
 }
 
+export type ResetGalleryResult = {
+  /** סוכן Blob שנמחקו (תמונות + מניפסטים) */
+  deletedBlobObjects: number;
+  /** קבצים מקומיים ב-public/data שנמחקו (פיתוח ללא Blob) */
+  clearedLocalFiles: number;
+};
+
+/**
+ * איפוס מלא: מוחק את כל תוכן הגלריה באחסון (Blob או קבצים מקומיים) ושומר מניפסט ריק.
+ */
+export async function resetGalleryCompletely(): Promise<ResetGalleryResult> {
+  const token = blobToken();
+  let deletedBlobObjects = 0;
+
+  if (token) {
+    const urls: string[] = [];
+    let cursor: string | undefined;
+    do {
+      const page = await list({
+        prefix: `${BLOB_PREFIX}/`,
+        token,
+        limit: 1000,
+        ...(cursor ? { cursor } : {})
+      });
+      for (const b of page.blobs) {
+        urls.push(b.url);
+      }
+      cursor = page.hasMore && page.cursor ? page.cursor : undefined;
+    } while (cursor);
+
+    const batchSize = 50;
+    for (let i = 0; i < urls.length; i += batchSize) {
+      const slice = urls.slice(i, i + batchSize);
+      await del(slice, { token });
+    }
+    deletedBlobObjects = urls.length;
+
+    await writeGalleryManifest({
+      items: [],
+      suppressedStaticBasenames: []
+    });
+
+    return { deletedBlobObjects, clearedLocalFiles: 0 };
+  }
+
+  const clearedLocalFiles = await clearGalleryLocalFilesAndManifest();
+  return { deletedBlobObjects: 0, clearedLocalFiles };
+}
+
+async function clearGalleryLocalFilesAndManifest(): Promise<number> {
+  let n = 0;
+  const bumpUnlink = async (filePath: string) => {
+    if (!existsSync(filePath)) return;
+    await unlink(filePath);
+    n += 1;
+  };
+
+  await bumpUnlink(GALLERY_DATA_FILE);
+  await bumpUnlink(path.join(DATA_DIR, "gallery-items.backup.json"));
+
+  if (existsSync(GALLERY_IMAGES_DIR)) {
+    const inGalleryImages = await readdir(GALLERY_IMAGES_DIR);
+    for (const file of inGalleryImages) {
+      try {
+        await bumpUnlink(path.join(GALLERY_IMAGES_DIR, file));
+      } catch {
+        /* ignore */
+      }
+    }
+  }
+
+  if (existsSync(PUBLIC_GALLERY_DIR)) {
+    const inPublicGallery = await readdir(PUBLIC_GALLERY_DIR);
+    for (const file of inPublicGallery) {
+      if (!STATIC_EXT.has(path.extname(file).toLowerCase())) continue;
+      try {
+        await bumpUnlink(path.join(PUBLIC_GALLERY_DIR, file));
+      } catch {
+        /* ignore */
+      }
+    }
+  }
+
+  return n;
+}
+
 export async function ensureGalleryDirsForAudit(): Promise<void> {
   if (!galleryUsesBlob()) {
     await ensureDirsFs();

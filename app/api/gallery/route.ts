@@ -16,6 +16,7 @@ import {
   readGalleryItems,
   readGalleryItemsRobust,
   rebuildGalleryManifestFromBlobStorage,
+  resetGalleryCompletely,
   writeGalleryItems
 } from "@/lib/gallery-storage";
 import { resolveAdminSessionSecret } from "@/lib/admin-session-secret";
@@ -149,7 +150,15 @@ function sortGalleryItems(items: GalleryItem[]): GalleryItem[] {
 
 async function logGalleryAdminAction(
   request: Request,
-  action: "verify-code" | "reorder" | "toggle-featured" | "delete" | "upload" | "update-caption" | "rebuild-from-blob",
+  action:
+    | "verify-code"
+    | "reorder"
+    | "toggle-featured"
+    | "delete"
+    | "upload"
+    | "update-caption"
+    | "rebuild-from-blob"
+    | "reset-gallery-full",
   payload: Record<string, unknown> = {}
 ) {
   const entry = {
@@ -267,7 +276,13 @@ export async function POST(request: Request) {
       }
 
       let body: {
-        action?: "verify-code" | "reorder" | "toggle-featured" | "update-caption" | "rebuild-from-blob-storage";
+        action?:
+          | "verify-code"
+          | "reorder"
+          | "toggle-featured"
+          | "update-caption"
+          | "rebuild-from-blob-storage"
+          | "reset-gallery-full";
         code?: string;
         orderedIds?: string[];
         id?: string;
@@ -276,7 +291,13 @@ export async function POST(request: Request) {
       };
       try {
         body = JSON.parse(rawText) as {
-          action?: "verify-code" | "reorder" | "toggle-featured" | "update-caption" | "rebuild-from-blob-storage";
+          action?:
+            | "verify-code"
+            | "reorder"
+            | "toggle-featured"
+            | "update-caption"
+            | "rebuild-from-blob-storage"
+            | "reset-gallery-full";
           code?: string;
           orderedIds?: string[];
           id?: string;
@@ -343,6 +364,43 @@ export async function POST(request: Request) {
               ? "חסר BLOB_READ_WRITE_TOKEN בשרת."
               : "שחזור הרשימה מהאחסון נכשל.";
           return galleryJson({ error: msg }, { status: 500 });
+        }
+      }
+
+      if (body.action === "reset-gallery-full") {
+        if (!isAuthorizedRequest(request, body.code, adminCode)) {
+          registerFailedAttempt(clientKey);
+          return galleryJson({ error: "קוד מנהל שגוי" }, { status: 401 });
+        }
+        clearFailedAttempts(clientKey);
+        if (isVercelWithoutPersistentGalleryWrites()) {
+          return galleryJson({ error: FREE_HOSTING_GALLERY_WRITE_HE }, { status: 503 });
+        }
+        try {
+          const result = await resetGalleryCompletely();
+          await logGalleryAdminAction(request, "reset-gallery-full", {
+            deletedBlobObjects: result.deletedBlobObjects,
+            clearedLocalFiles: result.clearedLocalFiles
+          });
+          const detailParts: string[] = [];
+          if (result.deletedBlobObjects > 0) {
+            detailParts.push(`${result.deletedBlobObjects} קבצים מהאחסון`);
+          }
+          if (result.clearedLocalFiles > 0) {
+            detailParts.push(`${result.clearedLocalFiles} קבצים מקומיים`);
+          }
+          const summary =
+            detailParts.length > 0 ? `נמחקו: ${detailParts.join(" · ")}.` : "המניפסט ריק.";
+          return galleryJson({
+            ok: true,
+            message: `איפוס גלריה הושלם. ${summary} אפשר להעלות מחדש.`,
+            items: [],
+            deletedBlobObjects: result.deletedBlobObjects,
+            clearedLocalFiles: result.clearedLocalFiles
+          });
+        } catch (err) {
+          console.error("[api/gallery reset-gallery-full]", err);
+          return galleryJson({ error: "איפוס הגלריה נכשל. נסה שוב או פנה למנהל." }, { status: 500 });
         }
       }
 

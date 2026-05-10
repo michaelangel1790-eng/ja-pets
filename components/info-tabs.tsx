@@ -160,6 +160,7 @@ export function InfoTabs() {
   const [isVerifyingGalleryAdminCode, setIsVerifyingGalleryAdminCode] = useState(false);
   const [isUploadingGalleryImages, setIsUploadingGalleryImages] = useState(false);
   const [isRebuildingGalleryFromBlob, setIsRebuildingGalleryFromBlob] = useState(false);
+  const [isResettingGalleryFull, setIsResettingGalleryFull] = useState(false);
   const [galleryCompressProgress, setGalleryCompressProgress] = useState(0);
   const [galleryUploadProgress, setGalleryUploadProgress] = useState(0);
   const [featuredSavingId, setFeaturedSavingId] = useState<string | null>(null);
@@ -1243,6 +1244,56 @@ export function InfoTabs() {
         setGalleryAdminMessage(error instanceof Error ? error.message : "שחזור נכשל");
       } finally {
         setIsRebuildingGalleryFromBlob(false);
+      }
+    });
+  };
+
+  const resetGalleryFull = async () => {
+    if (!canManageGallery) return;
+    const confirmed = window.confirm(
+      "איפוס מלא של הגלריה:\n\n• יימחקו כל קבצי התמונות והמניפסט מהאחסון (Vercel Blob)\n• לא ניתן לשחזר דרך האתר\n\nלהמשיך?"
+    );
+    if (!confirmed) return;
+    const confirmedAgain = window.confirm("אישור סופי: למחוק את כל הגלריה ולהתחיל מאפס?");
+    if (!confirmedAgain) return;
+    const sessionToken = lastVerifiedGalleryCodeRef.current;
+    if (!sessionToken) {
+      setGalleryAdminMessage("יש לאמת מחדש קוד מנהל");
+      return;
+    }
+    setGalleryAdminMessage("מאפס גלריה...");
+    setIsResettingGalleryFull(true);
+    await enqueueGalleryWrite(async () => {
+      try {
+        const response = await fetch("/api/gallery", {
+          method: "POST",
+          cache: "no-store",
+          headers: {
+            "Content-Type": "application/json",
+            "x-admin-session": sessionToken
+          },
+          body: JSON.stringify({ action: "reset-gallery-full" })
+        });
+        const payload = await safeParseResponseJson<{
+          error?: string;
+          message?: string;
+          items?: GalleryItem[];
+          ok?: boolean;
+        }>(response);
+        if (!response.ok) {
+          throw new Error(payload.error || "איפוס הגלריה נכשל");
+        }
+        setGalleryImages(Array.isArray(payload.items) ? payload.items : []);
+        setGalleryAdminMessage(
+          typeof payload.message === "string" && payload.message.trim()
+            ? payload.message.trim()
+            : "הגלריה אופסה — אפשר להעלות מחדש"
+        );
+        await loadGalleryItems(true, { silent: true });
+      } catch (error) {
+        setGalleryAdminMessage(error instanceof Error ? error.message : "איפוס נכשל");
+      } finally {
+        setIsResettingGalleryFull(false);
       }
     });
   };
@@ -2895,7 +2946,7 @@ export function InfoTabs() {
                         type="file"
                         accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
                         multiple
-                        disabled={isUploadingGalleryImages}
+                        disabled={isUploadingGalleryImages || isResettingGalleryFull}
                         onChange={uploadImages}
                         className="sr-only"
                       />
@@ -2917,13 +2968,25 @@ export function InfoTabs() {
                     </label>
                     <button
                       type="button"
-                      disabled={isRebuildingGalleryFromBlob || isUploadingGalleryImages}
+                      disabled={
+                        isRebuildingGalleryFromBlob || isResettingGalleryFull || isUploadingGalleryImages
+                      }
                       onClick={() => void rebuildGalleryFromBlob()}
                       className="mt-3 w-full rounded-lg border border-amber-400/45 bg-amber-500/15 px-3 py-2 text-center text-xs font-bold text-amber-100 hover:bg-amber-500/25 disabled:opacity-50"
                     >
                       {isRebuildingGalleryFromBlob
                         ? "משחזר מהאחסון…"
                         : "שחזור גלריה מהאחסון (אם התמונות נעלמו מהרשימה)"}
+                    </button>
+                    <button
+                      type="button"
+                      disabled={
+                        isRebuildingGalleryFromBlob || isResettingGalleryFull || isUploadingGalleryImages
+                      }
+                      onClick={() => void resetGalleryFull()}
+                      className="mt-2 w-full rounded-lg border border-red-400/55 bg-red-600/20 px-3 py-2 text-center text-xs font-bold text-red-100 hover:bg-red-600/30 disabled:opacity-50"
+                    >
+                      {isResettingGalleryFull ? "מאפס גלריה…" : "איפוס מלא — מחיקת כל הגלריה מהאחסון"}
                     </button>
                   </div>
                 ) : null}
