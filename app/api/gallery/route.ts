@@ -14,6 +14,7 @@ import {
   galleryUsesBlob,
   persistGalleryImage,
   readGalleryItems,
+  readGalleryItemsRobust,
   rebuildGalleryManifestFromBlobStorage,
   writeGalleryItems
 } from "@/lib/gallery-storage";
@@ -328,7 +329,7 @@ export async function POST(request: Request) {
             ok: true,
             message:
               result.recoveredBlobImageCount > 0
-                ? `שוחזרו ${result.recoveredBlobImageCount} תמונות מהאחסון (${result.items.length} פריטים ברשימה)`
+                ? `שוחזרו ${result.recoveredBlobImageCount} תמונות מהאחסון (${result.items.length} פריטים ברשימה). כיתובים וכוכב מוביל שוחזרו מהמניפסט הקודם כשניתן להתאים לפי כתובת.`
                 : "לא נמצאו תמונות בתיקיית האחסון — המניפסט עודכן (אולי רק תמונות סטטיות מ-public/gallery).",
             items: sortGalleryItems(result.items)
           });
@@ -355,7 +356,7 @@ export async function POST(request: Request) {
           return galleryJson({ error: "חסר סדר תמונות לעדכון" }, { status: 400 });
         }
 
-        const existing = await readGalleryItems();
+        const existing = await readGalleryItemsRobust();
         const byId = new Map(existing.map((item) => [item.id, item] as const));
         const uniqueRequested = Array.from(new Set(body.orderedIds.filter((id) => typeof id === "string" && id.trim())));
         const knownRequested = uniqueRequested.filter((id) => byId.has(id));
@@ -393,7 +394,7 @@ export async function POST(request: Request) {
           return galleryJson({ error: "חסר מזהה תמונה" }, { status: 400 });
         }
 
-        const existing = await readGalleryItems();
+        const existing = await readGalleryItemsRobust();
         const itemIndex = existing.findIndex((item) => item.id === id);
         if (itemIndex < 0) {
           return galleryJson({ error: "התמונה לא נמצאה בגלריה" }, { status: 404 });
@@ -404,10 +405,14 @@ export async function POST(request: Request) {
             ? body.featured
             : !Boolean(existing[itemIndex]?.featured);
 
-        /** כמה מובילות שרוצים — רק הפריט הזה משתנה; האחרים נשארים */
-        const updated = existing.map((item) =>
-          item.id === id ? { ...item, featured: wantFeatured } : item
-        );
+        /** תמונה מובילה אחת בלבד — סימון כוכב מסיר מובילות מאחרות */
+        const updated = wantFeatured
+          ? existing.map((item) =>
+              item.id === id ? { ...item, featured: true } : { ...item, featured: false }
+            )
+          : existing.map((item) =>
+              item.id === id ? { ...item, featured: false } : item
+            );
 
         try {
           await writeGalleryItems(updated);
@@ -442,7 +447,7 @@ export async function POST(request: Request) {
           return galleryJson({ error: "חסר מזהה תמונה" }, { status: 400 });
         }
         const safeCap = sanitizeGalleryCaption(typeof body.caption === "string" ? body.caption : "");
-        const existing = await readGalleryItems();
+        const existing = await readGalleryItemsRobust();
         const itemIndex = existing.findIndex((item) => item.id === id);
         if (itemIndex < 0) {
           return galleryJson({ error: "התמונה לא נמצאה בגלריה" }, { status: 404 });
@@ -493,7 +498,7 @@ export async function POST(request: Request) {
         return galleryJson({ error: "חסר מזהה תמונה למחיקה" }, { status: 400 });
       }
 
-      const existing = await readGalleryItems();
+      const existing = await readGalleryItemsRobust();
       const toDelete = existing.find((item) => item.id === id);
       if (!toDelete) {
         return galleryJson({ error: "התמונה לא נמצאה בגלריה" }, { status: 404 });
@@ -544,7 +549,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const existing = await readGalleryItems();
+  const existing = await readGalleryItemsRobust();
   const created: GalleryItem[] = [];
   const now = Date.now();
   const allowedMimeTypes = new Set(["image/jpeg", "image/png", "image/webp", "image/jpg"]);

@@ -94,14 +94,24 @@ function parseManifestJson(parsed: unknown): GalleryManifestFile {
 }
 
 async function blobGetText(pathname: string, token: string): Promise<string | null> {
-  try {
-    const result = await get(pathname, { access: "public", token });
-    if (!result || result.statusCode !== 200 || !result.stream) return null;
-    const text = await new Response(result.stream).text();
-    return text.trim() ? text : null;
-  } catch {
-    return null;
+  const maxAttempts = 3;
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    try {
+      if (attempt > 0) {
+        await new Promise((r) => setTimeout(r, 100 * attempt));
+      }
+      const result = await get(pathname, { access: "public", token });
+      if (!result || result.statusCode !== 200 || !result.stream) {
+        return null;
+      }
+      const text = await new Response(result.stream).text();
+      return text.trim() ? text : null;
+    } catch (err) {
+      console.warn(`[gallery-storage] blobGetText ${pathname} attempt ${attempt + 1}`, err);
+      if (attempt === maxAttempts - 1) return null;
+    }
   }
+  return null;
 }
 
 function tryParseManifestText(text: string): GalleryManifestFile | null {
@@ -311,6 +321,77 @@ export async function readGalleryItems(): Promise<GalleryItem[]> {
   return mergeDiskStatic(manifest.items, suppressed, discovered);
 }
 
+const GALLERY_READ_RETRIES = 3;
+const GALLERY_READ_BACKOFF_MS = 90;
+
+/**
+ * קריאה חוזרת כשהמניפסט זמינה ריקה לרגע / זורקת — מונע דריסת רשימה במחיקה/העלאה.
+ */
+export async function readGalleryItemsRobust(): Promise<GalleryItem[]> {
+  let lastErr: unknown;
+  for (let i = 0; i < GALLERY_READ_RETRIES; i++) {
+    if (i > 0) {
+      await new Promise((r) => setTimeout(r, GALLERY_READ_BACKOFF_MS * i));
+    }
+    try {
+      const items = await readGalleryItems();
+      if (items.length > 0) {
+        return items;
+      }
+      if (i === GALLERY_READ_RETRIES - 1) {
+        return [];
+      }
+      console.warn(`[gallery-storage] readGalleryItems returned 0 items (attempt ${i + 1}), retrying`);
+    } catch (e) {
+      lastErr = e;
+      console.warn(`[gallery-storage] readGalleryItems attempt ${i + 1} failed`, e);
+      if (i === GALLERY_READ_RETRIES - 1) {
+        throw lastErr instanceof Error ? lastErr : new Error(String(lastErr));
+      }
+    }
+  }
+  if (lastErr) throw lastErr instanceof Error ? lastErr : new Error(String(lastErr));
+  return [];
+}
+
+/** מפתח יציב להשוואת כתובת תמונה (מיזוג אחרי שחזור Blob) */
+export function normalizeGalleryImageKey(image: string): string {
+  const trimmed = image.trim();
+  if (trimmed.startsWith("https://") || trimmed.startsWith("http://")) {
+    try {
+      const u = new URL(trimmed);
+      const pathOnly = u.pathname.replace(/\/+$/, "");
+      return `${u.hostname.toLowerCase()}${pathOnly.toLowerCase()}`;
+    } catch {
+      /* fall through */
+    }
+  }
+  return trimmed.replace(/\?.*$/, "").toLowerCase();
+}
+
+function mergeGalleryMetadataFromPrevious(rebuilt: GalleryItem[], previousItems: GalleryItem[]): GalleryItem[] {
+  const prevByKey = new Map<string, GalleryItem>();
+  for (const p of previousItems) {
+    prevByKey.set(normalizeGalleryImageKey(p.image), p);
+  }
+  return rebuilt.map((item) => {
+    const prev = prevByKey.get(normalizeGalleryImageKey(item.image));
+    if (!prev) return item;
+    return {
+      ...item,
+      id: prev.id,
+      caption: typeof prev.caption === "string" ? prev.caption : item.caption,
+      featured: prev.featured === true,
+      category: prev.category ?? item.category,
+      dogType: prev.dogType ?? item.dogType,
+      treatmentName: prev.treatmentName ?? item.treatmentName,
+      width: prev.width ?? item.width,
+      height: prev.height ?? item.height,
+      createdAt: prev.createdAt ?? item.createdAt
+    };
+  });
+}
+
 export type RebuildGalleryFromBlobResult = {
   items: GalleryItem[];
   recoveredBlobImageCount: number;
@@ -370,8 +451,11 @@ export async function rebuildGalleryManifestFromBlobStorage(): Promise<RebuildGa
     /* מניפסט לא נקרא — נשמרים רק מה שהחזיר ה־Blob */
   }
 
+  const blobItemsWithMeta =
+    prev.items.length > 0 ? mergeGalleryMetadataFromPrevious(blobItems, prev.items) : blobItems;
+
   const discovered = await discoverPublicGalleryFiles();
-  const merged = mergeDiskStatic(blobItems, new Set(prev.suppressedStaticBasenames), discovered);
+  const merged = mergeDiskStatic(blobItemsWithMeta, new Set(prev.suppressedStaticBasenames), discovered);
 
   await writeGalleryManifest({
     items: merged,

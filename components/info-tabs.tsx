@@ -1199,7 +1199,7 @@ export function InfoTabs() {
   const rebuildGalleryFromBlob = async () => {
     if (!canManageGallery) return;
     const confirmed = window.confirm(
-      "לבנות מחדש את רשימת הגלריה לפי כל הקבצים ב-Vercel Blob?\n\nהתמונות עצמן נשארות בשרת — רק הרשימה נבנית מחדש. סדר, כוכב מוביל וכיתובים לכל תמונה יידרשו עדכון ידני אחרי השחזור."
+      "לבנות מחדש את רשימת הגלריה לפי כל הקבצים ב-Vercel Blob?\n\nכיתובים וכוכב מוביל ישוחזרו אוטומטית לפי המניפסט הקודם (לפי כתובת התמונה). סדר התמונות עלול להשתנות — אפשר לסדר מחדש אחרי השחזור."
     );
     if (!confirmed) return;
     const sessionToken = lastVerifiedGalleryCodeRef.current;
@@ -1370,7 +1370,11 @@ export function InfoTabs() {
         setGalleryPage(1);
       }
       setGalleryImages((prev) =>
-        prev.map((item) => (item.id === id ? { ...item, featured } : item))
+        featured
+          ? prev.map((item) =>
+              item.id === id ? { ...item, featured: true } : { ...item, featured: false }
+            )
+          : prev.map((item) => (item.id === id ? { ...item, featured: false } : item))
       );
       try {
         const response = await fetch("/api/gallery", {
