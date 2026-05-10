@@ -6,7 +6,7 @@ import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
 import { mkdir, readFile, readdir, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { del, get, put } from "@vercel/blob";
+import { del, get, list, put } from "@vercel/blob";
 import { type GalleryCategory, type GalleryItem } from "@/data/marketing-data";
 
 const DATA_DIR = path.join(process.cwd(), "data");
@@ -309,6 +309,76 @@ export async function readGalleryItems(): Promise<GalleryItem[]> {
   }
 
   return mergeDiskStatic(manifest.items, suppressed, discovered);
+}
+
+export type RebuildGalleryFromBlobResult = {
+  items: GalleryItem[];
+  recoveredBlobImageCount: number;
+};
+
+/**
+ * כשהמניפסט נפגם/ריק אבל הקבצים עדיין ב־Blob — בונה מחדש את הרשימה מכל הקבצים תחת jacuzzi-gallery/images/.
+ */
+export async function rebuildGalleryManifestFromBlobStorage(): Promise<RebuildGalleryFromBlobResult> {
+  const token = blobToken();
+  if (!token) {
+    throw new Error("NO_BLOB_TOKEN");
+  }
+
+  const collected: { url: string; pathname: string; uploadedAt: Date }[] = [];
+  let cursor: string | undefined;
+  do {
+    const page = await list({
+      prefix: `${BLOB_PREFIX}/images/`,
+      token,
+      limit: 1000,
+      ...(cursor ? { cursor } : {})
+    });
+    for (const b of page.blobs) {
+      if (/\.(webp|jpg|jpeg|png)$/i.test(b.pathname)) {
+        collected.push({
+          url: b.url,
+          pathname: b.pathname,
+          uploadedAt: b.uploadedAt
+        });
+      }
+    }
+    cursor = page.hasMore && page.cursor ? page.cursor : undefined;
+  } while (cursor);
+
+  collected.sort((a, b) => a.uploadedAt.getTime() - b.uploadedAt.getTime());
+
+  const blobItems: GalleryItem[] = collected.map((b) => {
+    const idSlice = createHash("sha256").update(b.pathname).digest("hex").slice(0, 16);
+    return {
+      id: `rebuilt-${idSlice}`,
+      image: b.url,
+      category: "תספורות",
+      dogType: "כלב",
+      treatmentName: "תספורת וטיפוח",
+      caption: "",
+      featured: false,
+      source: "blob",
+      createdAt: b.uploadedAt.toISOString()
+    };
+  });
+
+  let prev: GalleryManifestFile = { items: [], suppressedStaticBasenames: [] };
+  try {
+    prev = await readPersistedManifest();
+  } catch {
+    /* מניפסט לא נקרא — נשמרים רק מה שהחזיר ה־Blob */
+  }
+
+  const discovered = await discoverPublicGalleryFiles();
+  const merged = mergeDiskStatic(blobItems, new Set(prev.suppressedStaticBasenames), discovered);
+
+  await writeGalleryManifest({
+    items: merged,
+    suppressedStaticBasenames: prev.suppressedStaticBasenames
+  });
+
+  return { items: merged, recoveredBlobImageCount: blobItems.length };
 }
 
 async function writeGalleryManifestBlob(data: GalleryManifestFile, token: string): Promise<void> {

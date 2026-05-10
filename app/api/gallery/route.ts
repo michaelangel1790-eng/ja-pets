@@ -14,6 +14,7 @@ import {
   galleryUsesBlob,
   persistGalleryImage,
   readGalleryItems,
+  rebuildGalleryManifestFromBlobStorage,
   writeGalleryItems
 } from "@/lib/gallery-storage";
 import { resolveAdminSessionSecret } from "@/lib/admin-session-secret";
@@ -144,7 +145,7 @@ function sortGalleryItems(items: GalleryItem[]): GalleryItem[] {
 
 async function logGalleryAdminAction(
   request: Request,
-  action: "verify-code" | "reorder" | "toggle-featured" | "delete" | "upload" | "update-caption",
+  action: "verify-code" | "reorder" | "toggle-featured" | "delete" | "upload" | "update-caption" | "rebuild-from-blob",
   payload: Record<string, unknown> = {}
 ) {
   const entry = {
@@ -262,7 +263,7 @@ export async function POST(request: Request) {
       }
 
       let body: {
-        action?: "verify-code" | "reorder" | "toggle-featured" | "update-caption";
+        action?: "verify-code" | "reorder" | "toggle-featured" | "update-caption" | "rebuild-from-blob-storage";
         code?: string;
         orderedIds?: string[];
         id?: string;
@@ -271,7 +272,7 @@ export async function POST(request: Request) {
       };
       try {
         body = JSON.parse(rawText) as {
-          action?: "verify-code" | "reorder" | "toggle-featured" | "update-caption";
+          action?: "verify-code" | "reorder" | "toggle-featured" | "update-caption" | "rebuild-from-blob-storage";
           code?: string;
           orderedIds?: string[];
           id?: string;
@@ -303,6 +304,42 @@ export async function POST(request: Request) {
           token: sessionToken,
           sessionToken
         });
+      }
+
+      if (body.action === "rebuild-from-blob-storage") {
+        if (!isAuthorizedRequest(request, body.code, adminCode)) {
+          registerFailedAttempt(clientKey);
+          return galleryJson({ error: "קוד מנהל שגוי" }, { status: 401 });
+        }
+        clearFailedAttempts(clientKey);
+        if (!galleryUsesBlob()) {
+          return galleryJson(
+            { error: "שחזור מהאחסון זמין רק כשהגלריה מחוברת ל-Vercel Blob." },
+            { status: 400 }
+          );
+        }
+        try {
+          const result = await rebuildGalleryManifestFromBlobStorage();
+          await logGalleryAdminAction(request, "rebuild-from-blob", {
+            recoveredBlobImageCount: result.recoveredBlobImageCount,
+            totalItems: result.items.length
+          });
+          return galleryJson({
+            ok: true,
+            message:
+              result.recoveredBlobImageCount > 0
+                ? `שוחזרו ${result.recoveredBlobImageCount} תמונות מהאחסון (${result.items.length} פריטים ברשימה)`
+                : "לא נמצאו תמונות בתיקיית האחסון — המניפסט עודכן (אולי רק תמונות סטטיות מ-public/gallery).",
+            items: sortGalleryItems(result.items)
+          });
+        } catch (err) {
+          console.error("[api/gallery rebuild-from-blob-storage]", err);
+          const msg =
+            err instanceof Error && err.message === "NO_BLOB_TOKEN"
+              ? "חסר BLOB_READ_WRITE_TOKEN בשרת."
+              : "שחזור הרשימה מהאחסון נכשל.";
+          return galleryJson({ error: msg }, { status: 500 });
+        }
       }
 
       if (body.action === "reorder") {

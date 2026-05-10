@@ -158,6 +158,7 @@ export function InfoTabs() {
   const lastVerifiedReviewsSessionRef = useRef<string | null>(null);
   const [isVerifyingGalleryAdminCode, setIsVerifyingGalleryAdminCode] = useState(false);
   const [isUploadingGalleryImages, setIsUploadingGalleryImages] = useState(false);
+  const [isRebuildingGalleryFromBlob, setIsRebuildingGalleryFromBlob] = useState(false);
   const [galleryCompressProgress, setGalleryCompressProgress] = useState(0);
   const [galleryUploadProgress, setGalleryUploadProgress] = useState(0);
   const [featuredSavingId, setFeaturedSavingId] = useState<string | null>(null);
@@ -1193,6 +1194,56 @@ export function InfoTabs() {
       setGalleryUploadProgress(0);
       if (input) input.value = "";
     }
+  };
+
+  const rebuildGalleryFromBlob = async () => {
+    if (!canManageGallery) return;
+    const confirmed = window.confirm(
+      "לבנות מחדש את רשימת הגלריה לפי כל הקבצים ב-Vercel Blob?\n\nהתמונות עצמן נשארות בשרת — רק הרשימה נבנית מחדש. סדר, כוכב מוביל וכיתובים לכל תמונה יידרשו עדכון ידני אחרי השחזור."
+    );
+    if (!confirmed) return;
+    const sessionToken = lastVerifiedGalleryCodeRef.current;
+    if (!sessionToken) {
+      setGalleryAdminMessage("יש לאמת מחדש קוד מנהל");
+      return;
+    }
+    setGalleryAdminMessage("משחזר רשימת גלריה מהאחסון...");
+    setIsRebuildingGalleryFromBlob(true);
+    await enqueueGalleryWrite(async () => {
+      try {
+        const response = await fetch("/api/gallery", {
+          method: "POST",
+          cache: "no-store",
+          headers: {
+            "Content-Type": "application/json",
+            "x-admin-session": sessionToken
+          },
+          body: JSON.stringify({ action: "rebuild-from-blob-storage" })
+        });
+        const payload = await safeParseResponseJson<{
+          error?: string;
+          message?: string;
+          items?: GalleryItem[];
+          ok?: boolean;
+        }>(response);
+        if (!response.ok) {
+          throw new Error(payload.error || "שחזור רשימת הגלריה נכשל");
+        }
+        if (Array.isArray(payload.items)) {
+          setGalleryImages(payload.items);
+        }
+        setGalleryAdminMessage(
+          typeof payload.message === "string" && payload.message.trim()
+            ? payload.message.trim()
+            : "הגלריה שוחזרה מהאחסון"
+        );
+        await loadGalleryItems(true, { silent: true });
+      } catch (error) {
+        setGalleryAdminMessage(error instanceof Error ? error.message : "שחזור נכשל");
+      } finally {
+        setIsRebuildingGalleryFromBlob(false);
+      }
+    });
   };
 
   const deleteImage = async (id: string) => {
@@ -2859,6 +2910,16 @@ export function InfoTabs() {
                         ))}
                       </select>
                     </label>
+                    <button
+                      type="button"
+                      disabled={isRebuildingGalleryFromBlob || isUploadingGalleryImages}
+                      onClick={() => void rebuildGalleryFromBlob()}
+                      className="mt-3 w-full rounded-lg border border-amber-400/45 bg-amber-500/15 px-3 py-2 text-center text-xs font-bold text-amber-100 hover:bg-amber-500/25 disabled:opacity-50"
+                    >
+                      {isRebuildingGalleryFromBlob
+                        ? "משחזר מהאחסון…"
+                        : "שחזור גלריה מהאחסון (אם התמונות נעלמו מהרשימה)"}
+                    </button>
                   </div>
                 ) : null}
 
