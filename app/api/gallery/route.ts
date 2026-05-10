@@ -50,6 +50,13 @@ function galleryJson(body: unknown, init?: ResponseInit) {
   return NextResponse.json(body, { ...init, headers: merged });
 }
 
+function isGalleryManifestCorrupt(error: unknown): boolean {
+  return error instanceof Error && error.message === "GALLERY_MANIFEST_CORRUPT";
+}
+
+const GALLERY_MANIFEST_CORRUPT_HE =
+  "מניפסט הגלריה פגום או לא קריא. נסה לרענן את הדף. אם הבעיה נמשכת — פנה למנהל האתר (אפשר שחזור מגיבוי ב-Vercel Blob).";
+
 function getClientKey(request: Request) {
   const forwarded = request.headers.get("x-forwarded-for") || "";
   const ip = (forwarded.split(",")[0] || request.headers.get("x-real-ip") || "unknown").trim();
@@ -216,8 +223,11 @@ export async function GET() {
   } catch (error) {
     console.error("[api/gallery GET]", error);
     return galleryJson(
-      { error: "לא ניתן לטעון את הגלריה כעת. נסה שוב בעוד רגע.", items: [] },
-      { status: 500 }
+      {
+        error: isGalleryManifestCorrupt(error) ? GALLERY_MANIFEST_CORRUPT_HE : "לא ניתן לטעון את הגלריה כעת. נסה שוב בעוד רגע.",
+        items: []
+      },
+      { status: isGalleryManifestCorrupt(error) ? 503 : 500 }
     );
   }
 }
@@ -583,6 +593,9 @@ export async function POST(request: Request) {
   });
   } catch (error) {
     console.error("[api/gallery POST]", error);
+    if (isGalleryManifestCorrupt(error)) {
+      return galleryJson({ error: GALLERY_MANIFEST_CORRUPT_HE }, { status: 503 });
+    }
     return galleryJson(
       { error: "לא ניתן להשלים את הפעולה כעת. נסה שוב בעוד רגע." },
       { status: 500 }

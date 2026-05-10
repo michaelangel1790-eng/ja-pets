@@ -16,6 +16,8 @@ export const PUBLIC_GALLERY_DIR = path.join(process.cwd(), "public", "gallery");
 
 const BLOB_PREFIX = "jacuzzi-gallery";
 export const BLOB_MANIFEST_PATH = `${BLOB_PREFIX}/manifest.json`;
+/** גיבוי לפני כל כתיבה — שחזור כשהמניפסט הראשי נפגם */
+const BLOB_MANIFEST_BACKUP_PATH = `${BLOB_PREFIX}/manifest-backup.json`;
 
 const STATIC_EXT = new Set([".jpg", ".jpeg", ".png", ".webp"]);
 
@@ -91,32 +93,108 @@ function parseManifestJson(parsed: unknown): GalleryManifestFile {
   return { items: [], suppressedStaticBasenames: [] };
 }
 
-async function readGalleryManifestBlob(token: string): Promise<GalleryManifestFile> {
+async function blobGetText(pathname: string, token: string): Promise<string | null> {
   try {
-    const result = await get(BLOB_MANIFEST_PATH, { access: "public", token });
-    if (!result || result.statusCode !== 200 || !result.stream) {
-      return { items: [], suppressedStaticBasenames: [] };
-    }
+    const result = await get(pathname, { access: "public", token });
+    if (!result || result.statusCode !== 200 || !result.stream) return null;
     const text = await new Response(result.stream).text();
-    if (!text.trim()) return { items: [], suppressedStaticBasenames: [] };
-    const parsed = JSON.parse(text) as unknown;
-    return parseManifestJson(parsed);
+    return text.trim() ? text : null;
   } catch {
-    return { items: [], suppressedStaticBasenames: [] };
+    return null;
   }
 }
 
+function tryParseManifestText(text: string): GalleryManifestFile | null {
+  try {
+    const parsed = JSON.parse(text) as unknown;
+    return parseManifestJson(parsed);
+  } catch {
+    return null;
+  }
+}
+
+async function repairPrimaryManifestFromData(data: GalleryManifestFile, token: string): Promise<void> {
+  await put(BLOB_MANIFEST_PATH, JSON.stringify(data), {
+    access: "public",
+    token,
+    contentType: "application/json",
+    addRandomSuffix: false,
+    allowOverwrite: true
+  });
+}
+
+/**
+ * קריאת מניפסט Blob: לא מחזירים ריק בשגיאת JSON (זה גרם לדריסת גלריה מלאה בהעלאה).
+ * ניסיון שחזור מ־manifest-backup.json; תיקון אוטומטי של הקובץ הראשי אחרי שחזור מגיבוי.
+ */
+async function readGalleryManifestBlob(token: string): Promise<GalleryManifestFile> {
+  const primaryText = await blobGetText(BLOB_MANIFEST_PATH, token);
+  const backupText = await blobGetText(BLOB_MANIFEST_BACKUP_PATH, token);
+
+  if (primaryText) {
+    const ok = tryParseManifestText(primaryText);
+    if (ok) return ok;
+    console.error("[gallery-storage] primary manifest.json is not valid JSON", {
+      length: primaryText.length,
+      preview: primaryText.slice(0, 200)
+    });
+  }
+
+  if (backupText) {
+    const fromBackup = tryParseManifestText(backupText);
+    if (fromBackup) {
+      console.warn("[gallery-storage] gallery manifest recovered from manifest-backup.json");
+      try {
+        await repairPrimaryManifestFromData(fromBackup, token);
+      } catch (repairErr) {
+        console.error("[gallery-storage] could not rewrite primary manifest after backup recovery", repairErr);
+      }
+      return fromBackup;
+    }
+    console.error("[gallery-storage] manifest-backup.json also invalid");
+  }
+
+  if (primaryText || backupText) {
+    throw new Error("GALLERY_MANIFEST_CORRUPT");
+  }
+
+  return { items: [], suppressedStaticBasenames: [] };
+}
+
 async function readGalleryManifestFs(): Promise<GalleryManifestFile> {
+  const backupPath = path.join(DATA_DIR, "gallery-items.backup.json");
+
   if (!existsSync(GALLERY_DATA_FILE)) {
     return { items: [], suppressedStaticBasenames: [] };
   }
   try {
     const raw = await readFile(GALLERY_DATA_FILE, "utf8");
-    const parsed = JSON.parse(raw) as unknown;
-    return parseManifestJson(parsed);
+    const ok = tryParseManifestText(raw);
+    if (ok) return ok;
+    console.error("[gallery-storage] gallery-items.json invalid, trying backup");
   } catch {
-    return { items: [], suppressedStaticBasenames: [] };
+    /* fall through */
   }
+
+  if (existsSync(backupPath)) {
+    try {
+      const bak = await readFile(backupPath, "utf8");
+      const fromBackup = tryParseManifestText(bak);
+      if (fromBackup) {
+        console.warn("[gallery-storage] recovered gallery-items.json from gallery-items.backup.json");
+        try {
+          await writeFile(GALLERY_DATA_FILE, JSON.stringify(fromBackup), "utf8");
+        } catch (repairErr) {
+          console.error("[gallery-storage] could not repair gallery-items.json", repairErr);
+        }
+        return fromBackup;
+      }
+    } catch {
+      /* ignore */
+    }
+  }
+
+  throw new Error("GALLERY_MANIFEST_CORRUPT");
 }
 
 export async function readPersistedManifest(): Promise<GalleryManifestFile> {
@@ -234,7 +312,30 @@ export async function readGalleryItems(): Promise<GalleryItem[]> {
 }
 
 async function writeGalleryManifestBlob(data: GalleryManifestFile, token: string): Promise<void> {
-  await put(BLOB_MANIFEST_PATH, JSON.stringify(data, null, 2), {
+  const payload = JSON.stringify(data);
+
+  let previousRaw: string | null = null;
+  try {
+    previousRaw = await blobGetText(BLOB_MANIFEST_PATH, token);
+  } catch {
+    previousRaw = null;
+  }
+
+  if (previousRaw && tryParseManifestText(previousRaw)) {
+    try {
+      await put(BLOB_MANIFEST_BACKUP_PATH, previousRaw, {
+        access: "public",
+        token,
+        contentType: "application/json",
+        addRandomSuffix: false,
+        allowOverwrite: true
+      });
+    } catch (backupErr) {
+      console.warn("[gallery-storage] writing manifest-backup failed", backupErr);
+    }
+  }
+
+  await put(BLOB_MANIFEST_PATH, payload, {
     access: "public",
     token,
     contentType: "application/json",
@@ -254,7 +355,19 @@ async function ensureDirsFs() {
 
 async function writeGalleryManifestFs(data: GalleryManifestFile): Promise<void> {
   await ensureDirsFs();
-  await writeFile(GALLERY_DATA_FILE, JSON.stringify(data, null, 2), "utf8");
+  const payload = JSON.stringify(data);
+  if (existsSync(GALLERY_DATA_FILE)) {
+    try {
+      const prev = await readFile(GALLERY_DATA_FILE, "utf8");
+      if (prev.trim() && tryParseManifestText(prev)) {
+        const bak = path.join(DATA_DIR, "gallery-items.backup.json");
+        await writeFile(bak, prev, "utf8");
+      }
+    } catch {
+      /* ignore */
+    }
+  }
+  await writeFile(GALLERY_DATA_FILE, payload, "utf8");
 }
 
 export async function writeGalleryManifest(data: GalleryManifestFile): Promise<void> {
