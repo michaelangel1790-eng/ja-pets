@@ -1075,7 +1075,7 @@ export function InfoTabs() {
         created?: GalleryItem[];
         ok?: boolean;
       } = {};
-      const isMalformedServerPayload = (errorText?: string): boolean => {
+      const shouldRetryAsSingleUpload = (errorText?: string): boolean => {
         if (!errorText) return false;
         return (
           errorText.includes("תשובת השרת לא בפורמט") ||
@@ -1117,11 +1117,40 @@ export function InfoTabs() {
               : "מעלה תמונות..."
           );
 
-          const { response, payload } = await runUploadAttempt(chunk);
-          if (isMalformedServerPayload(payload.error)) {
-            throw new Error(
-              "השרת לא החזיר תשובה תקינה (עומס, timeout או שגיאת רשת). ההעלאה הופסקה — נסה שוב עם פחות תמונות או אחרי רגע."
-            );
+          let { response, payload } = await runUploadAttempt(chunk);
+          const chunkPayloadMalformed = shouldRetryAsSingleUpload(payload.error);
+          if (chunk.length > 1 && chunkPayloadMalformed) {
+            setGalleryAdminMessage("זוהתה בעיית שרת, ממשיך בהעלאה חכמה אוטומטית...");
+            for (let i = 0; i < chunk.length; i += 1) {
+              const singleResult = await runUploadAttempt([chunk[i]]);
+              response = singleResult.response;
+              payload = singleResult.payload;
+              if (shouldRetryAsSingleUpload(payload.error)) {
+                throw new Error("השרת החזיר תשובה לא תקינה גם בהעלאה יחידה. נסה שוב בעוד רגע.");
+              }
+              if (!response.ok) {
+                const serverErr =
+                  typeof payload.error === "string" && payload.error.trim()
+                    ? payload.error.trim()
+                    : "העלאת התמונות נכשלה";
+                throw new Error(serverErr);
+              }
+              if (Array.isArray(payload.items)) {
+                setGalleryImages(payload.items);
+              } else if (Array.isArray(payload.created) && payload.created.length > 0) {
+                setGalleryImages((prev) => sortGalleryItemsLikeApi([...payload.created!, ...prev]));
+              } else {
+                await loadGalleryItems(true, { silent: true });
+              }
+              setGalleryUploadProgress(
+                Math.min(100, Math.round(((chunkIndex + (i + 1) / chunk.length) / totalChunks) * 100))
+              );
+              lastPayload = payload;
+            }
+            return;
+          }
+          if (chunkPayloadMalformed) {
+            throw new Error("השרת החזיר תשובה לא תקינה. נסה שוב בעוד רגע.");
           }
 
           if (!response.ok) {
