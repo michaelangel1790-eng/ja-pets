@@ -1,10 +1,11 @@
-import type { Metadata } from "next";
 import { PageWithChrome } from "@/components/page-with-chrome";
+import { createPageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "תנאי שימוש | JACUZZI",
-  description: "תנאי השימוש באתר JACUZZI."
-};
+export const metadata = createPageMetadata(
+  "/terms-of-use",
+  "תנאי שימוש",
+  "תנאי השימוש באתר ג'קוזי — מספרת כלבים בירושלים."
+);
 
 export default function TermsOfUsePage() {
   return (

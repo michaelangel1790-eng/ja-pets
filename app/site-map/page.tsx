@@ -1,11 +1,12 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 import { PageWithChrome } from "@/components/page-with-chrome";
+import { createPageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "מפת אתר | JACUZZI",
-  description: "מפת דפי האתר לנוחות ניווט ונגישות."
-};
+export const metadata = createPageMetadata(
+  "/site-map",
+  "מפת אתר",
+  "מפת דפי האתר לנוחות ניווט ונגישות — ג'קוזי מספרה לכלבים בירושלים."
+);
 
 const routes = [
   { href: "/", label: "דף הבית" },

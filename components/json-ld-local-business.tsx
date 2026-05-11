@@ -1,16 +1,15 @@
 import { whatsappNumber, workHours } from "@/data/site-data";
 import { mainLogoAbsoluteUrl } from "@/lib/site-images";
-import { getSiteUrl } from "@/lib/site-url";
+import { SITE_ORIGIN } from "@/lib/seo";
 
 /** נתונים מובנים לחיפוש מקומי — עדכן כתובת רחוב כשיהיה מידע רשמי */
 export function JsonLdLocalBusiness() {
-  const base = getSiteUrl().origin;
   const payload = {
     "@context": "https://schema.org",
     "@type": ["LocalBusiness", "PetGroomer"],
-    name: "JACUZZI — מספרת כלבים",
-    description: `מספרת כלבים מקצועית באזור ירושלים — עד הבית או במשאית טיפוח. ${workHours.note}`,
-    url: base,
+    name: "ג'קוזי — מספרת כלבים בירושלים",
+    description: `ג'קוזי מספרה לכלבים בירושלים — תספורות, טיפוח ורחצה עד הבית או במשאית הטיפוח. ${workHours.note}`,
+    url: SITE_ORIGIN,
     telephone: "+972-50-550-1662",
     priceRange: "$$",
     areaServed: {
@@ -28,7 +27,7 @@ export function JsonLdLocalBusiness() {
       opens: "08:00",
       closes: "20:00",
     },
-    image: mainLogoAbsoluteUrl(base),
+    image: mainLogoAbsoluteUrl(SITE_ORIGIN),
     sameAs: [`https://wa.me/${whatsappNumber}`],
   };
 

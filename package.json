@@ -14,6 +14,7 @@
     "gallery:sync": "node scripts/gallery-sync.mjs",
     "optimize:gallery-images": "node scripts/optimize-gallery-images.mjs",
     "refine:logo": "node scripts/apply-user-logo.mjs",
+    "seo:assets": "node scripts/generate-seo-assets.mjs",
     "lighthouse:home": "npx --yes lighthouse http://127.0.0.1:3005 --only-categories=performance,accessibility,best-practices,seo --preset=desktop --quiet --chrome-flags=\"--headless=new\" --output=html --output-path=./lighthouse-home.html"
   },
   "dependencies": {

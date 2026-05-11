@@ -1,4 +1,10 @@
+import type { Metadata } from "next";
 import { AccessibilityWidget } from "@/components/accessibility-widget";
+import { pageCanonical } from "@/lib/seo";
+
+export const metadata: Metadata = {
+  alternates: { canonical: pageCanonical("/") },
+};
 import { HeroSection } from "@/components/HeroSection";
 import { InfoTabs } from "@/components/info-tabs";
 import { SiteLegalFooter } from "@/components/site-legal-footer";

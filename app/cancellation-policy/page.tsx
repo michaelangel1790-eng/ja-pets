@@ -1,11 +1,12 @@
-import type { Metadata } from "next";
 import { ExternalLink } from "@/components/external-link";
 import { PageWithChrome } from "@/components/page-with-chrome";
+import { createPageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "מדיניות ביטולים | JACUZZI",
-  description: "מדיניות ביטולים ותיאום תורים של JACUZZI."
-};
+export const metadata = createPageMetadata(
+  "/cancellation-policy",
+  "מדיניות ביטולים",
+  "מדיניות ביטולים ותיאום תורים של ג'קוזי — מספרת כלבים בירושלים."
+);
 
 export default function CancellationPolicyPage() {
   return (

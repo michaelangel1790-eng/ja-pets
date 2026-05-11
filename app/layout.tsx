@@ -3,40 +3,56 @@ import { ConsentAwarePlausible } from "@/components/consent-aware-plausible";
 import { CookieConsentBanner } from "@/components/cookie-consent-banner";
 import { CopyrightCorner } from "@/components/copyright-corner";
 import { JsonLdLocalBusiness } from "@/components/json-ld-local-business";
-import { mainLogoHeight, mainLogoSrc, mainLogoWidth } from "@/lib/site-images";
+import {
+  DEFAULT_DESCRIPTION,
+  DEFAULT_TITLE,
+  OG_IMAGE_HEIGHT,
+  OG_IMAGE_PATH,
+  OG_IMAGE_WIDTH,
+  OG_SITE_NAME,
+  SITE_TITLE_TEMPLATE_SUFFIX,
+  pageCanonical,
+} from "@/lib/seo";
 import { getSiteUrl } from "@/lib/site-url";
 import "./globals.css";
 
 const siteUrl = getSiteUrl();
+const homeUrl = pageCanonical("/");
 
 export const metadata: Metadata = {
   metadataBase: siteUrl,
   title: {
-    default: "JACUZZI | מספרת כלבים בירושלים",
-    template: "%s | JACUZZI",
+    default: DEFAULT_TITLE,
+    template: `%s | ${SITE_TITLE_TEMPLATE_SUFFIX}`,
   },
-  description: "מספרת כלבים מקצועית באזור ירושלים - עד הבית או במשאית טיפוח.",
+  description: DEFAULT_DESCRIPTION,
+  applicationName: OG_SITE_NAME,
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true },
+  },
   openGraph: {
     type: "website",
     locale: "he_IL",
-    url: siteUrl,
-    siteName: "JACUZZI",
-    title: "JACUZZI | מספרת כלבים בירושלים",
-    description: "מספרת כלבים מקצועית באזור ירושלים - עד הבית או במשאית טיפוח.",
+    url: homeUrl,
+    siteName: OG_SITE_NAME,
+    title: DEFAULT_TITLE,
+    description: DEFAULT_DESCRIPTION,
     images: [
       {
-        url: mainLogoSrc,
-        width: mainLogoWidth,
-        height: mainLogoHeight,
-        alt: "לוגו JACUZZI — SPA FOR PET",
+        url: OG_IMAGE_PATH,
+        width: OG_IMAGE_WIDTH,
+        height: OG_IMAGE_HEIGHT,
+        alt: "ג'קוזי — מספרת כלבים בירושלים",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "JACUZZI | מספרת כלבים בירושלים",
-    description: "מספרת כלבים מקצועית באזור ירושלים - עד הבית או במשאית טיפוח.",
-    images: [mainLogoSrc],
+    title: DEFAULT_TITLE,
+    description: DEFAULT_DESCRIPTION,
+    images: [OG_IMAGE_PATH],
   },
 };
 
@@ -45,11 +61,11 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 0.95,
   maximumScale: 5,
-  viewportFit: "cover"
+  viewportFit: "cover",
 };
 
 export default function RootLayout({
-  children
+  children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {

@@ -1,11 +1,12 @@
-import type { Metadata } from "next";
 import { ExternalLink } from "@/components/external-link";
 import { PageWithChrome } from "@/components/page-with-chrome";
+import { createPageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "מדיניות פרטיות | JACUZZI",
-  description: "מדיניות הפרטיות של אתר JACUZZI."
-};
+export const metadata = createPageMetadata(
+  "/privacy-policy",
+  "מדיניות פרטיות",
+  "מדיניות הפרטיות של אתר ג'קוזי — מספרת כלבים בירושלים."
+);
 
 export default function PrivacyPolicyPage() {
   return (
