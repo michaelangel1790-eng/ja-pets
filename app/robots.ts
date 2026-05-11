@@ -1,13 +1,13 @@
 import type { MetadataRoute } from "next";
-import { getSiteUrl } from "@/lib/site-url";
+
+const SITE_URL = "https://ja-pets.co.il";
 
 export default function robots(): MetadataRoute.Robots {
-  const base = getSiteUrl().origin;
   return {
     rules: {
       userAgent: "*",
       allow: "/",
     },
-    sitemap: `${base}/sitemap.xml`,
+    sitemap: `${SITE_URL}/sitemap.xml`,
   };
 }

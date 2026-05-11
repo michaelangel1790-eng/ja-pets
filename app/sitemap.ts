@@ -1,5 +1,7 @@
 import type { MetadataRoute } from "next";
-import { getSiteUrl } from "@/lib/site-url";
+
+/** כתובת ציבורית קבועה ל־sitemap — לא VERCEL_URL ולא דומיין פריסה פנימי. */
+const SITE_URL = "https://ja-pets.co.il";
 
 const ROUTES: {
   path: string;
@@ -16,7 +18,7 @@ const ROUTES: {
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const base = getSiteUrl().origin;
+  const base = SITE_URL;
   const now = new Date();
 
   return ROUTES.map(({ path, changeFrequency, priority }) => ({
