@@ -6,6 +6,7 @@ import { JsonLdLocalBusiness } from "@/components/json-ld-local-business";
 import {
   DEFAULT_DESCRIPTION,
   DEFAULT_TITLE,
+  OG_IMAGE_ALT,
   OG_IMAGE_HEIGHT,
   OG_IMAGE_PATH,
   OG_IMAGE_WIDTH,
@@ -44,7 +45,7 @@ export const metadata: Metadata = {
         url: OG_IMAGE_PATH,
         width: OG_IMAGE_WIDTH,
         height: OG_IMAGE_HEIGHT,
-        alt: "ג'קוזי — מספרת כלבים בירושלים",
+        alt: OG_IMAGE_ALT,
       },
     ],
   },

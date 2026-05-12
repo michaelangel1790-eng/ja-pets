@@ -14,8 +14,11 @@ export const OG_SITE_NAME = "ג'קוזי | JACUZZI";
 /** תמונת OG ברירת מחדל — החלף את הקובץ ב־public/og-image.jpg לעיצוב מלא */
 export const OG_IMAGE_PATH = "/og-image.jpg";
 
-export const OG_IMAGE_WIDTH = 1200;
-export const OG_IMAGE_HEIGHT = 630;
+export const OG_IMAGE_ALT = "ג'קוזי SPA FOR PET — מספרה לכלבים ניידת בירושלים";
+
+/** מימדי קובץ public/og-image.jpg (עדכן אם מחליפים את התמונה) */
+export const OG_IMAGE_WIDTH = 1024;
+export const OG_IMAGE_HEIGHT = 576;
 
 export const SITE_TITLE_TEMPLATE_SUFFIX = "ג'קוזי מספרה לכלבים";
 
@@ -33,7 +36,7 @@ const defaultOgImage = {
   url: OG_IMAGE_PATH,
   width: OG_IMAGE_WIDTH,
   height: OG_IMAGE_HEIGHT,
-  alt: "ג'קוזי — מספרת כלבים בירושלים",
+  alt: OG_IMAGE_ALT,
 } as const;
 
 export function createPageMetadata(
